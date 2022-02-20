@@ -32,7 +32,6 @@ function setUItoImage(imageUrl: string) {
 }
 
 function resultToData(result: ArrayBuffer) {
-    console.log(rust.ten());
 }
 
 function changeFile() {
@@ -44,3 +43,5 @@ function changeFile() {
     }
 }
 inputElement.addEventListener('change', changeFile);
+
+console.log(rust.ten());

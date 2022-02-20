@@ -28,7 +28,6 @@ function setUItoImage(imageUrl) {
     inputElement.style.display = "none";
 }
 function resultToData(result) {
-    console.log(rust.ten());
 }
 function changeFile() {
     if (inputElement.files instanceof FileList) {
@@ -39,3 +38,4 @@ function changeFile() {
     }
 }
 inputElement.addEventListener('change', changeFile);
+console.log(rust.ten());
