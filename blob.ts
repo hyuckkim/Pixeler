@@ -32,6 +32,7 @@ function setUItoImage(imageUrl: string) {
 }
 
 function resultToData(result: ArrayBuffer) {
+    console.log(rust.ten());
 }
 
 function changeFile() {

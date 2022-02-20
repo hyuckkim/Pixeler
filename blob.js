@@ -1,3 +1,4 @@
+import * as rust from "./pkg/hello_wasm.js";
 var inputElement = document.querySelector('body > div > input[type=file]');
 var bgElement = document.querySelector('body > div');
 function readFile(event) {
@@ -27,6 +28,7 @@ function setUItoImage(imageUrl) {
     inputElement.style.display = "none";
 }
 function resultToData(result) {
+    console.log(rust.ten());
 }
 function changeFile() {
     if (inputElement.files instanceof FileList) {
@@ -37,4 +39,3 @@ function changeFile() {
     }
 }
 inputElement.addEventListener('change', changeFile);
-export {};
