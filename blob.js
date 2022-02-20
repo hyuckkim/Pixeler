@@ -1,4 +1,4 @@
-import * as rust from "./pkg/hello_wasm.js";
+import * as rust from "./pkg/hello_wasm";
 var inputElement = document.querySelector('body > div > inputElement[type=file]');
 var bgElement = document.querySelector('body > div');
 function readFile(event) {
