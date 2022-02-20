@@ -43,5 +43,3 @@ function changeFile() {
     }
 }
 inputElement.addEventListener('change', changeFile);
-
-console.log(rust.ten());

@@ -1,4 +1,3 @@
-import * as rust from "./pkg/hello_wasm.js";
 var inputElement = document.querySelector('body > div > input[type=file]');
 var bgElement = document.querySelector('body > div');
 function readFile(event) {
@@ -38,4 +37,4 @@ function changeFile() {
     }
 }
 inputElement.addEventListener('change', changeFile);
-console.log(rust.ten());
+export {};
