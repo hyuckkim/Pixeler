@@ -29,7 +29,11 @@ function setUItoImage(imageUrl) {
     inputElement.style.display = "none";
 }
 function resultToData(result) {
-    console.log(rust.ten());
+    bgElement.innerHTML += newMenuString();
+    //console.log(rust.ten());
+}
+function newMenuString() {
+    return `<div id="newmenu"><p id="menuarticle">이 파일은 png 파일이 아닙니다!</p><button id="menubutton"></button></div>`;
 }
 function changeFile() {
     if (inputElement.files instanceof FileList) {
