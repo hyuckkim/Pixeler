@@ -40,7 +40,7 @@ async function load(module, imports) {
     }
 }
 
-async function init(input) {
+export async function init(input) {
     if (typeof input === 'undefined') {
         input = new URL('hello_wasm_bg.wasm', import.meta.url);
     }
@@ -60,6 +60,3 @@ async function init(input) {
 
     return wasm;
 }
-
-export default init;
-
