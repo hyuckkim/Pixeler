@@ -1,6 +1,6 @@
 import * as rust from "./pkg/hello_wasm.js";
 await rust.init();
-console.log(rust.ten());
+
 var inputElement = document.querySelector('body > div > input[type=file]') as HTMLInputElement;
 var bgElement = document.querySelector('body > div') as HTMLElement;
 
@@ -35,7 +35,7 @@ function setUItoImage(imageUrl: string) {
 
 function resultToData(result: ArrayBuffer) {
     bgElement.innerHTML += newMenuString();
-    //console.log(rust.ten());
+    console.log(rust.ten());
 }
 function newMenuString() : string {
     return `<div id="newmenu"><p id="menuarticle">이 파일은 png 파일이 아닙니다!</p><button id="menubutton"></button></div>`;

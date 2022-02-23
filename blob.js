@@ -30,7 +30,7 @@ function setUItoImage(imageUrl) {
 }
 function resultToData(result) {
     bgElement.innerHTML += newMenuString();
-    //console.log(rust.ten());
+    console.log(rust.ten());
 }
 function newMenuString() {
     return `<div id="newmenu"><p id="menuarticle">이 파일은 png 파일이 아닙니다!</p><button id="menubutton"></button></div>`;
