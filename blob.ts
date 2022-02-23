@@ -1,4 +1,5 @@
 import * as rust from "./pkg/hello_wasm.js";
+await rust.init();
 var inputElement = document.querySelector('body > div > input[type=file]') as HTMLInputElement;
 var bgElement = document.querySelector('body > div') as HTMLElement;
 
