@@ -15,49 +15,27 @@ body, html {
     margin: 0px;
 }
 
-#newmenu {
-    position: absolute;
-    height:400px;
-    width:200px;
-    
-    left: calc(50% - 100px);
-    top: calc(50% - 200px);
-    background-color: ncs(4550-R70B);
+#newmenu, #palettemenu {
+    width:400px;
+    background-color: #dbe1e4;
 
-    animation-duration: 1s;
-    animation-name: slidein;
+    border: 2px solid#3f3f3f;
+    border-radius: 8px;
 }
-#menuarticle {
-    width:194px;
-    margin: 3px;
-    height:344px;
-    background-color: #1f1b5e;
-    
-    animation-duration: 1s;
-    animation-name: slidearticle;
+#menuslider {
+    width: calc(100% - 4px);
+    border: 2px solid#3f3f3f;
 }
 #menubutton {
-    width:200px;
-    height: 50px;
+    background-color: #aea5a5;
+    width: calc(100% - 4px);
+    border: 2px solid#3f3f3f;
+    text-align: center;
 }
-@keyframes slidein {
-    from {
-        top:calc(100% - 20px);
-        height: 100px;
-    }
-    80% {
-        height: 100px;
-    }
-    to {
-        top: calc(50% - 200px);
-        height: 400px;
-    }
-}
-@keyframes slidearticle {
-    from {
-        height:44px;
-    }
-    to {
-        height: 344px;
-    }
+#menuarticle {
+    background-color: #aea5a5;
+    
+    border: 2px solid#3f3f3f;
+    border-radius: 8px;
+    text-align: center;
 }
