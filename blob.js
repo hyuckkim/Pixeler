@@ -74,7 +74,6 @@ var url = "";
 async function pixelizeButton(colors) {
     var data = await makeCanvas(url);
     var pixelized = await quantize(data, colors);
-    pixeldata = pixelized;
     var pixelcolors = rust.read_palette(new Uint8ClampedArray(await pixelized.arrayBuffer()));
     if (pixeldata == undefined) {
         createNextInterface(splitColors(pixelcolors));
@@ -82,6 +81,7 @@ async function pixelizeButton(colors) {
     else {
         modifyNextInterface(splitColors(pixelcolors));
     }
+    pixeldata = pixelized;
     setUItoImage(createUrl(pixelized));
 }
 async function makeCanvas(blob) {
