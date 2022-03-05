@@ -69,6 +69,14 @@ function createInterface() {
     value.range.id = `menuslider`;
     value.submit.id = `menubutton`;
 
+    value.range.type = `range`;
+    value.range.value = `4`;
+    value.range.min = `2`;
+    value.range.max = `256`;
+
+    value.submit.type = `button`;
+    value.submit.value = `4색 팔레트 만들기!`;
+
     value.range.addEventListener("change", rangeChanged);
     value.submit.addEventListener("click", submitPressed);
 
