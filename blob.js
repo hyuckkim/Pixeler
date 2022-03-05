@@ -2,16 +2,10 @@ import * as rust from "./pkg/hello_wasm.js";
 rust.default();
 var inputElement = document.querySelector('body > div > input[type=file]');
 var bgElement = document.querySelector('body > div');
-var url = "", pixelurl = "";
-var pixeldata;
+var pixeldata = undefined;
+var pixelizeui;
 var pixelui;
 var filename = "";
-var range;
-var submit;
-var log;
-export function logging(s) {
-    log.innerText = "status: " + s;
-}
 async function readFile(event) {
     if (event.target instanceof FileReader && event.target.result instanceof ArrayBuffer) {
         var result = event.target.result;
@@ -20,7 +14,6 @@ async function readFile(event) {
         setUItoImage(url);
         var colors = rust.read_palette(new Uint8ClampedArray(result));
         if (colors.length != 0) {
-            pixelurl = url;
             pixeldata = blob;
             createNextInterface(splitColors(colors));
         }
@@ -47,41 +40,43 @@ function createUrl(blob) {
 function setUItoImage(imageUrl) {
     bgElement.style.backgroundImage = "url('" + imageUrl + "')";
     inputElement.style.display = "none";
-    console.log(imageUrl);
+    pixelurl = imageUrl;
 }
 function createInterface() {
-    bgElement.insertAdjacentHTML("beforeend", `
-<div id="newmenu">
-<input id="menuslider" type="range" min="2" max="256" value="4">
-<input id="menubuton" type="button" value="4색 팔레트 만들기!">
-<span id="menuarticle"></span>
-</div>
-    `);
-    range = document.querySelector('body > div > div[id=newmenu] > input[type=range]');
-    submit = document.querySelector('body > div > div[id=newmenu] > input[type=button]');
-    log = document.querySelector('body > div > div[id=newmenu] > span');
-    range.addEventListener("change", rangeChanged);
-    submit.addEventListener("click", submitPressed);
+    var value = {
+        div: new HTMLDivElement(),
+        range: new HTMLInputElement(),
+        submit: new HTMLInputElement(),
+    };
+    value.div.id = `newmenu`;
+    value.range.id = `menuslider`;
+    value.submit.id = `menubutton`;
+    value.range.addEventListener("change", rangeChanged);
+    value.submit.addEventListener("click", submitPressed);
+    bgElement.insertAdjacentElement("beforeend", value.div);
+    value.div.insertAdjacentElement("beforeend", value.range);
+    value.div.insertAdjacentElement("beforeend", value.submit);
+    pixelizeui = value;
 }
 function rangeChanged() {
-    submit.value = range.value + "색 팔레트 만들기!";
+    pixelizeui.submit.value = pixelizeui.range.value + "색 팔레트 만들기!";
 }
 function submitPressed() {
-    pixelizeButton(Number.parseInt(range.value));
+    pixelizeButton(Number.parseInt(pixelizeui.range.value));
 }
+var url = "";
 async function pixelizeButton(colors) {
     var data = await makeCanvas(url);
     var pixelized = await quantize(data, colors);
-    var pixelcolors = rust.read_palette(new Uint8ClampedArray(await pixelized.arrayBuffer()));
     pixeldata = pixelized;
-    if (pixelurl === "") {
+    var pixelcolors = rust.read_palette(new Uint8ClampedArray(await pixelized.arrayBuffer()));
+    if (pixeldata == undefined) {
         createNextInterface(splitColors(pixelcolors));
     }
     else {
         modifyNextInterface(splitColors(pixelcolors));
     }
-    pixelurl = createUrl(pixelized);
-    setUItoImage(pixelurl);
+    setUItoImage(createUrl(pixelized));
 }
 async function makeCanvas(blob) {
     const img = document.createElement('img');
@@ -152,19 +147,20 @@ function modifyNextInterface(colors) {
     }
 }
 async function colorchanged() {
-    console.log(this);
-    var data = new Uint8ClampedArray(await pixeldata.arrayBuffer());
-    var no = Number.parseInt(this.id);
-    var color = pixelui.colors[no].value;
-    var blob = imageBlob(rust.change_palette(data, Number.parseInt(this.id), Number.parseInt(`0x${color[1]}${color[2]}`), Number.parseInt(`0x${color[3]}${color[4]}`), Number.parseInt(`0x${color[5]}${color[6]}`)));
-    pixeldata = blob;
-    pixelurl = createUrl(blob);
-    setUItoImage(pixelurl);
+    if (pixeldata instanceof Blob) {
+        var data = new Uint8ClampedArray(await pixeldata.arrayBuffer());
+        var no = Number.parseInt(this.id);
+        var color = pixelui.colors[no].value;
+        var blob = imageBlob(rust.change_palette(data, Number.parseInt(this.id), Number.parseInt(`0x${color[1]}${color[2]}`), Number.parseInt(`0x${color[3]}${color[4]}`), Number.parseInt(`0x${color[5]}${color[6]}`)));
+        pixeldata = blob;
+        setUItoImage(createUrl(blob));
+    }
 }
+var pixelurl = "";
 function downloadPressed() {
     const contentType = "image/png";
     var a = document.createElement('a');
-    a.download = filename;
+    a.download = `${filename}.png`;
     a.href = pixelurl;
     a.click();
 }
@@ -174,7 +170,7 @@ function changeFile() {
         var reader = new FileReader();
         reader.addEventListener('load', readFile);
         reader.readAsArrayBuffer(file);
-        filename = file.name;
+        filename = file.name.split('.')[0];
     }
 }
 inputElement.addEventListener('change', changeFile);

@@ -190,7 +190,7 @@ var pixelurl = "";
 function downloadPressed() {
     const contentType = "image/png";
     var a = document.createElement('a');
-    a.download = filename;
+    a.download = `${filename}.png`;
     a.href = pixelurl;
     a.click();
 }
@@ -200,7 +200,7 @@ function changeFile() {
         var reader = new FileReader();
         reader.addEventListener('load', readFile);
         reader.readAsArrayBuffer(file);
-        filename = file.name;
+        filename = file.name.split('.')[0];
     }
 }
 inputElement.addEventListener('change', changeFile);
