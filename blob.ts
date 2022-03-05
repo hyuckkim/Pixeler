@@ -61,9 +61,9 @@ function setUItoImage(imageUrl: string) {
 }
 function createInterface() {
     var value: firstUI = {
-        div: new HTMLDivElement(),
-        range: new HTMLInputElement(),
-        submit: new HTMLInputElement(),
+        div: document.createElement('div'),
+        range: document.createElement('input'),
+        submit: document.createElement('input'),
     };
     value.div.id = `newmenu`;
     value.range.id = `menuslider`;
