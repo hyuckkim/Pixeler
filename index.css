@@ -19,7 +19,7 @@
     height: 100%;
     width: 100%;
 }
-p {
+p, section{
     font-family: 'NanumGothicLight';
     text-align: center;
 }
