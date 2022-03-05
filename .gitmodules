@@ -1,0 +1,3 @@
+[submodule "palette-png"]
+	path = palette-png
+	url = https://github.com/hyuckkim/palette-png
