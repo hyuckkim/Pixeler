@@ -69,7 +69,7 @@ function createInterface() {
     value.range.id = `menuslider`;
     value.range.ariaLabel = `이미지를 변환할 때 사용할 색 개수`;
     value.submit.id = `menubutton`;
-    value.submit.ariaLabel = `이미지를 몇 개의 색만을 가지도록 변환합니다.`;
+    value.submit.ariaLabel = `이미지를 몇 개의 색만을 가지도록 변환합니다. 이 작업은 몇 초 정도 걸립니다.`;
 
     value.range.type = `range`;
     value.range.value = `4`;
@@ -141,11 +141,17 @@ function createNextInterface(colors: Array<string>) {
     value.button.id = 'menubutton';
     value.button.type = 'button';
     value.button.value = '다운로드';
+    
     value.button.addEventListener("click", downloadPressed);
 
     bgElement.insertAdjacentElement("beforeend", value.div);
     value.div.insertAdjacentElement("beforeend", value.button);
 
+    value.button.ariaLabel = `파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
+    value.button.focus();
+    value.button.addEventListener('focusout', function() {
+        this.ariaLabel = `다운로드 버튼. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
+    });
     var i = 0;
     colors.forEach(e => {
         var newcover = makeNewcover(e, i);
@@ -180,6 +186,8 @@ function modifyNextInterface(colors: Array<string>) {
             moved.remove();
         }
     }
+    value.button.ariaLabel = `파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
+    value.button.focus();
 }
 async function colorchanged(this: HTMLInputElement) {
     if (pixeldata instanceof Blob) {
