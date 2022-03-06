@@ -67,7 +67,9 @@ function createInterface() {
     };
     value.div.id = `newmenu`;
     value.range.id = `menuslider`;
+    value.range.ariaLabel = `이미지를 변환할 때 사용할 색 개수`;
     value.submit.id = `menubutton`;
+    value.submit.ariaLabel = `이미지를 몇 개의 색만을 가지도록 변환합니다.`;
 
     value.range.type = `range`;
     value.range.value = `4`;
@@ -82,8 +84,8 @@ function createInterface() {
 
     bgElement.insertAdjacentElement("beforeend", value.div);
 
-    value.div.insertAdjacentElement("beforeend", value.range);
     value.div.insertAdjacentElement("beforeend", value.submit);
+    value.div.insertAdjacentElement("beforeend", value.range);
 
     pixelizeui = value;
 }
