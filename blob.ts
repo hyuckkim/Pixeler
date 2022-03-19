@@ -1,48 +1,32 @@
 import * as rust from "./pkg/hello_wasm.js";
 rust.default();
 
-var inputElement = document.querySelector('body > div > input[type=file]') as HTMLInputElement;
-var bgElement = document.querySelector('body > div') as HTMLElement;
-var pixeldata: Blob | undefined = undefined;
-
-var pixelizeui: firstUI;
-var pixelui: secondUI;
-type secondUI = {
-    div: HTMLDivElement;
-    button: HTMLInputElement;
-    colors: HTMLInputElement[];
-    
-    addColor: (self: secondUI, newcover: HTMLInputElement) => void;
-};
-type firstUI = {
-    div: HTMLDivElement,
-    range: HTMLInputElement,
-    submit: HTMLInputElement,
-
+const inputElement = document.querySelector('body > div > input[type=file]') as HTMLInputElement;
+var newName = "palette.png";
+inputElement.addEventListener('change', function() {
+    if (inputElement.files instanceof FileList) {
+        var file = inputElement.files[0];
+        readFileAndCallback(file, readFile);
+        newName = makeNewName(file.name);
+    }
+});
+function readFileAndCallback(file: File, callback: (this: FileReader, ev: ProgressEvent<FileReader>) => any) {
+    var reader = new FileReader();
+    reader.addEventListener('load', callback);
+    reader.readAsArrayBuffer(file);
 }
-var filename = "";
-
+var bgElement = document.querySelector('body > div') as HTMLElement;
 async function readFile(event: ProgressEvent<FileReader>) {
     if (event.target instanceof FileReader && event.target.result instanceof ArrayBuffer) {
         var result = event.target.result;
 
         var blob = imageBlob(result);
         url = createUrl(blob);
+
         setUItoImage(url);
-        var colors = rust.read_palette(new Uint8ClampedArray(result));
-        if (colors.length != 0) {
-            pixeldata = blob;
-            createNextInterface(splitColors(colors));
-        }
-        createInterface();
+        createInterface(bgElement);
+        colornizeIfPaletted(result, blob);
     }
-}
-function splitColors(data: Uint8ClampedArray): Array<string>{
-    var array = [];
-    for (var i = 0; i < data.length / 3; i++) {
-        array.push(`${data[i * 3].toString(16)}${data[i * 3 + 1].toString(16)}${data[i * 3 + 2].toString(16)}`);
-    }
-    return array;
 }
 function imageBlob(data: ArrayBuffer): Blob {
     var property = {type:'image/*'};
@@ -59,41 +43,57 @@ function setUItoImage(imageUrl: string) {
     inputElement.style.display = "none";
     pixelurl = imageUrl;
 }
-function createInterface() {
-    var value: firstUI = {
-        div: document.createElement('div'),
-        range: document.createElement('input'),
-        submit: document.createElement('input'),
+type firstUI = {
+    div: HTMLDivElement,
+    range: HTMLInputElement,
+    submit: HTMLInputElement,
+}
+var pixelizeui: firstUI;
+function createInterface(bg: HTMLElement): firstUI {
+    bg.insertAdjacentHTML('beforeend',
+        `<div id="newmenu"><input id="menubutton" aria-label="이미지를 몇 개의 색만을 가지도록 변환합니다. 이 작업은 몇 초 정도 걸립니다." type="button" value="4색 팔레트 만들기!"><input id="menuslider" aria-label="이미지를 변환할 때 사용할 색 개수" type="range" min="2" value="4" max="256"></div>`
+    );
+    pixelizeui = {
+        div: bg.querySelector('div') as HTMLDivElement,
+        submit: bg.querySelector('div > input[type=button]:nth-child(1)') as HTMLInputElement,
+        range: bg.querySelector('div > input[type=range]:nth-child(2)') as HTMLInputElement,
     };
-    value.div.id = `newmenu`;
-    value.range.id = `menuslider`;
-    value.range.ariaLabel = `이미지를 변환할 때 사용할 색 개수`;
-    value.submit.id = `menubutton`;
-    value.submit.ariaLabel = `이미지를 몇 개의 색만을 가지도록 변환합니다. 이 작업은 몇 초 정도 걸립니다.`;
-
-    value.range.type = `range`;
-    value.range.value = `4`;
-    value.range.min = `2`;
-    value.range.max = `256`;
-
-    value.submit.type = `button`;
-    value.submit.value = `4색 팔레트 만들기!`;
-
-    value.range.addEventListener("change", rangeChanged);
-    value.submit.addEventListener("click", submitPressed);
-
-    bgElement.insertAdjacentElement("beforeend", value.div);
-
-    value.div.insertAdjacentElement("beforeend", value.submit);
-    value.div.insertAdjacentElement("beforeend", value.range);
-
-    pixelizeui = value;
+    pixelizeui.range.onchange = rangeChanged;
+    pixelizeui.submit.onclick = submitPressed;
+    return pixelizeui;
+    
+    function rangeChanged() {
+        pixelizeui.submit.value = pixelizeui.range.value + "색 팔레트 만들기!";
+    }
+    function submitPressed() {
+        pixelizeButton(Number.parseInt(pixelizeui.range.value));
+    }
 }
-function rangeChanged() {
-    pixelizeui.submit.value = pixelizeui.range.value + "색 팔레트 만들기!";
+function colornizeIfPaletted(data: ArrayBuffer, blob: Blob) {
+    var colors = rust.read_palette(new Uint8ClampedArray(data));
+    if (colors.length != 0) {
+        pixeldata = blob;
+        createNextInterface(splitColors(colors));
+    }
 }
-function submitPressed() {
-    pixelizeButton(Number.parseInt(pixelizeui.range.value));
+var pixeldata: Blob | undefined = undefined;
+
+var pixelui: secondUI;
+type secondUI = {
+    div: HTMLDivElement;
+    button: HTMLInputElement;
+    colors: HTMLInputElement[];
+    
+    addColor: (self: secondUI, newcover: HTMLInputElement) => void;
+};
+
+function splitColors(data: Uint8ClampedArray): Array<string>{
+    var array = [];
+    for (var i = 0; i < data.length / 3; i++) {
+        var r = data[i * 3].toString(16), g = data[i * 3 + 1].toString(16), b = data[i * 3 + 2].toString(16);
+        array.push(`${r}${g}${b}`);
+    }
+    return array;
 }
 
 var url = "";
@@ -122,8 +122,8 @@ async function makeCanvas(blob: string): Promise<ImageData> {
     ctx.drawImage(img, 0, 0);
     return ctx.getImageData(0, 0, img.width, img.height);
 }
-async function quantize(img: ImageData, colors: number): Promise<Blob> {
-    var quantized = await (async () => rust.quantize(img.data, img.width, img.height, colors, 1.0))();
+function quantize(img: ImageData, colors: number): Blob {
+    var quantized = rust.quantize(img.data, img.width, img.height, colors, 1.0);
     var blob = imageBlob(quantized.buffer);
     return blob;
 }
@@ -194,31 +194,30 @@ async function colorchanged(this: HTMLInputElement) {
 
         var data = new Uint8ClampedArray(await pixeldata.arrayBuffer());
         var no = Number.parseInt(this.id);
-        var color = pixelui.colors[no].value;
-        var blob = imageBlob(rust.change_palette(data, Number.parseInt(this.id), 
-        Number.parseInt(`0x${color[1]}${color[2]}`),
-        Number.parseInt(`0x${color[3]}${color[4]}`),
-        Number.parseInt(`0x${color[5]}${color[6]}`)));
+        var color = getRGB(pixelui.colors[no].value);
+
+        var newImage = rust.change_palette(data, Number.parseInt(this.id), 
+        color.r, color.g, color.b);
+        var blob = imageBlob(newImage);
         
         pixeldata = blob;
         setUItoImage(createUrl(blob));
     }
 }
+function getRGB(color: string): {r: number, g: number, b:number} {
+    return {
+        r: Number.parseInt(`0x${color[1]}${color[2]}`),
+        g: Number.parseInt(`0x${color[3]}${color[4]}`),
+        b: Number.parseInt(`0x${color[5]}${color[6]}`)
+    };
+}
 var pixelurl = "";
 function downloadPressed() {
-    const contentType = "image/png";
     var a = document.createElement('a');
-    a.download = `${filename}.png`;
+    a.download = newName;
     a.href = pixelurl;
     a.click();
 }
-function changeFile() {
-    if (inputElement.files instanceof FileList) {
-        var file = inputElement.files[0];
-        var reader = new FileReader();
-        reader.addEventListener('load', readFile);
-        reader.readAsArrayBuffer(file);
-        filename = file.name.split('.')[0];
-    }
+function makeNewName(oldName: string): string {
+    return `${oldName.split('.')[0]}.png`;
 }
-inputElement.addEventListener('change', changeFile);
