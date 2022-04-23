@@ -1,5 +1,6 @@
 import * as rust from "./pkg/hello_wasm.js";
 rust.default();
+var quantizeWorker = new Worker('wasmworker.js', { type: 'module' });
 const inputElement = document.querySelector('body > div > input[type=file]');
 var newName = "palette.png";
 inputElement.addEventListener('change', function () {
@@ -78,17 +79,24 @@ function splitColors(data) {
 var url = "";
 async function pixelizeButton(colors) {
     var data = await makeCanvas(url);
-    var pixelized = await quantize(data, colors);
-    var pixelcolors = rust.read_palette(new Uint8ClampedArray(await pixelized.arrayBuffer()));
+    quantizeWorker.postMessage([data, colors, 1.0]);
+    pixelizeui.submit.disabled = true;
+}
+quantizeWorker.onmessage = e => {
+    pixelizeui.submit.disabled = false;
+    var worked = e.data;
+    console.log(worked);
+    var pixelized = imageBlob(worked.buffer);
+    var pixelcolors = splitColors(rust.read_palette(new Uint8ClampedArray(worked)));
     if (pixeldata == undefined) {
-        createNextInterface(splitColors(pixelcolors));
+        createNextInterface(pixelcolors);
     }
     else {
-        modifyNextInterface(splitColors(pixelcolors));
+        modifyNextInterface(pixelcolors);
     }
     pixeldata = pixelized;
     setUItoImage(createUrl(pixelized));
-}
+};
 async function makeCanvas(blob) {
     const img = document.createElement('img');
     img.src = blob;
@@ -99,11 +107,6 @@ async function makeCanvas(blob) {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0);
     return ctx.getImageData(0, 0, img.width, img.height);
-}
-function quantize(img, colors) {
-    var quantized = rust.quantize(img.data, img.width, img.height, colors, 1.0);
-    var blob = imageBlob(quantized.buffer);
-    return blob;
 }
 function createNextInterface(colors) {
     var value = {
