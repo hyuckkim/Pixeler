@@ -1,7 +1,8 @@
 import * as rust from "./pkg/palette_png";
 rust.default();
 var quantizeWorker = new Worker('wasmworker.js', { type: 'module' });
-const inputElement = document.querySelector('body > div > input[type=file]');
+const inputElement = document.querySelector('body > div > input.file');
+const roremElement = document.querySelector('body > div > input.rorem');
 var newName = "palette.png";
 inputElement.addEventListener('change', function () {
     if (inputElement.files instanceof FileList) {
@@ -9,6 +10,9 @@ inputElement.addEventListener('change', function () {
         readFileAndCallback(file, readFile);
         newName = makeNewName(file.name);
     }
+});
+roremElement.addEventListener('click', function () {
+    loadFile(600, 600);
 });
 function readFileAndCallback(file, callback) {
     var reader = new FileReader();
@@ -26,6 +30,31 @@ async function readFile(event) {
         colornizeIfPaletted(result, blob);
     }
 }
+async function loadFile(width, height) {
+    var blob = await loadXHR(`https://picsum.photos/${width}/${height}`).then((response) => {
+        return response;
+    });
+    url = createUrl(blob);
+    setUItoImage(url);
+    createInterface(bgElement);
+}
+async function loadXHR(lorem) {
+    return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", lorem);
+        xhr.responseType = "blob";
+        xhr.onerror = function () { reject("Network error."); };
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                resolve(xhr.response);
+            }
+            else {
+                reject("Loading error:" + xhr.statusText);
+            }
+        };
+        xhr.send();
+    });
+}
 function imageBlob(data) {
     var property = { type: 'image/*' };
     var blob = new Blob([data], property);
@@ -39,6 +68,7 @@ function createUrl(blob) {
 function setUItoImage(imageUrl) {
     bgElement.style.backgroundImage = "url('" + imageUrl + "')";
     inputElement.style.display = "none";
+    roremElement.style.display = "none";
     pixelurl = imageUrl;
 }
 var pixelizeui;
