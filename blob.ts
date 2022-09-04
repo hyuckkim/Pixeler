@@ -13,8 +13,10 @@ inputElement.addEventListener('change', function() {
         newName = makeNewName(file.name);
     }
 });
-roremElement.addEventListener('click', function() {
-    loadFile(600, 600);
+roremElement.addEventListener('click', async function() {
+    roremElement.disabled = true;
+    await loadFile(600, 600);
+    roremElement.disabled = false;
 });
 function readFileAndCallback(file: File, callback: (this: FileReader, ev: ProgressEvent<FileReader>) => any) {
     var reader = new FileReader();
@@ -35,7 +37,6 @@ async function readFile(event: ProgressEvent<FileReader>) {
     }
 }
 async function loadFile(width: number, height: number) {
-
     var blob = await loadXHR(`https://picsum.photos/${width}/${height}`).then((response: any) => {
         return response;
     });

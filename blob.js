@@ -11,8 +11,10 @@ inputElement.addEventListener('change', function () {
         newName = makeNewName(file.name);
     }
 });
-roremElement.addEventListener('click', function () {
-    loadFile(600, 600);
+roremElement.addEventListener('click', async function () {
+    roremElement.disabled = true;
+    await loadFile(600, 600);
+    roremElement.disabled = false;
 });
 function readFileAndCallback(file, callback) {
     var reader = new FileReader();
