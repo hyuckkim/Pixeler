@@ -4,10 +4,23 @@
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
+
+    display: flex;
 }
 .github {
     width: 100%;
     background-color: lightgrey;
+}
+.imglabel {
+    
+    width: 100%;
+    height: 100%;
+    display:block;
+}
+.imgbutton {
+    width: 100%;
+    height: 100%;
+    display:block;
 }
 .github_img {
     display: block;
@@ -17,6 +30,7 @@
 .file {
     height: 100%;
     width: 100%;
+    display: none;
 }
 p, section{
     font-family: 'NanumGothicLight';

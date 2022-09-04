@@ -1,4 +1,4 @@
-import * as rust from "./pkg/hello_wasm.js";
+import * as rust from "./pkg/palette_png";
 rust.default();
 var quantizeWorker = new Worker('wasmworker.js', {type: 'module'});
 
