@@ -1,8 +1,10 @@
-import * as rust from "./pkg/hello_wasm.js";
+import * as rust from "./pkg/palette_png.js";
 rust.default();
 var quantizeWorker = new Worker('wasmworker.js', {type: 'module'});
 
-const inputElement = document.querySelector('body > div > input[type=file]') as HTMLInputElement;
+const inputElement = document.querySelector('body > div > input.file') as HTMLInputElement;
+const roremElement = document.querySelector('body > div > input.rorem') as HTMLInputElement;
+
 var newName = "palette.png";
 inputElement.addEventListener('change', function() {
     if (inputElement.files instanceof FileList) {
@@ -10,6 +12,11 @@ inputElement.addEventListener('change', function() {
         readFileAndCallback(file, readFile);
         newName = makeNewName(file.name);
     }
+});
+roremElement.addEventListener('click', async function() {
+    roremElement.disabled = true;
+    await loadFile(600, 600);
+    roremElement.disabled = false;
 });
 function readFileAndCallback(file: File, callback: (this: FileReader, ev: ProgressEvent<FileReader>) => any) {
     var reader = new FileReader();
@@ -29,6 +36,28 @@ async function readFile(event: ProgressEvent<FileReader>) {
         colornizeIfPaletted(result, blob);
     }
 }
+async function loadFile(width: number, height: number) {
+    var blob = await loadXHR(`https://picsum.photos/${width}/${height}`).then((response: any) => {
+        return response;
+    });
+    url = createUrl(blob);
+    
+    setUItoImage(url);
+    createInterface(bgElement);
+}
+async function loadXHR(lorem: string) {
+    return new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", lorem);
+        xhr.responseType = "blob";
+        xhr.onerror = function() {reject("Network error.")};
+        xhr.onload = function() {
+            if (xhr.status === 200) {resolve(xhr.response)}
+            else {reject("Loading error:" + xhr.statusText)}
+        };
+        xhr.send();
+    });
+}
 function imageBlob(data: ArrayBuffer): Blob {
     var property = {type:'image/*'};
     var blob = new Blob([data], property);
@@ -42,6 +71,7 @@ function createUrl(blob: Blob): string {
 function setUItoImage(imageUrl: string) {
     bgElement.style.backgroundImage = "url('" + imageUrl + "')";
     inputElement.style.display = "none";
+    roremElement.style.display = "none";
     pixelurl = imageUrl;
 }
 type firstUI = {

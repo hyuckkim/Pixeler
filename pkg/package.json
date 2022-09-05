@@ -1,21 +1,21 @@
 {
-  "name": "hello-wasm",
+  "name": "palette-png",
   "collaborators": [
     "hyuckkim <monkeyhyuck@naver.com>"
   ],
-  "description": "A sample project with wasm-pack",
+  "description": "make image pixelized with webassembly",
   "version": "0.1.0",
   "license": "MIT/apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hyuckkim/Online-ModernArt-Maker"
+    "url": "https://github.com/hyuckkim/palette-png"
   },
   "files": [
-    "hello_wasm_bg.wasm",
-    "hello_wasm.js",
-    "hello_wasm.d.ts"
+    "palette_png_bg.wasm",
+    "palette_png.js",
+    "palette_png.d.ts"
   ],
-  "module": "hello_wasm.js",
-  "types": "hello_wasm.d.ts",
+  "module": "palette_png.js",
+  "types": "palette_png.d.ts",
   "sideEffects": false
 }

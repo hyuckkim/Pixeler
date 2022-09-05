@@ -1,4 +1,4 @@
-import * as rust from "./pkg/hello_wasm.js";
+import * as rust from "./pkg/palette_png.js";
 rust.default();
 
 onmessage = function(e) {
