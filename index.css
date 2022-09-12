@@ -4,9 +4,6 @@
     background-position: center;
     background-repeat: no-repeat;
 }
-#pic {
-    pointer-events: none;
-}
 .github {
     width: 100%;
     background-color: lightgrey;
