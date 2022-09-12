@@ -1,38 +1,114 @@
 import * as rust from "./pkg/palette_png.js";
 rust.default();
-var quantizeWorker = new Worker('wasmworker.js', {type: 'module'});
 
 const inputElement = document.querySelector('body > div > input.file') as HTMLInputElement;
 const roremElement = document.querySelector('body > div > input.rorem') as HTMLInputElement;
 
-var pixelizeui: firstUI;
-pixelizeui = {
-    div: document.querySelector('#newmenu') as HTMLDivElement,
-    submit: document.querySelector('#newmenu > .menubutton') as HTMLInputElement,
-    range: document.querySelector('#menuslider') as HTMLInputElement,
-};
-pixelizeui.div.style.display = "none";
-pixelizeui.range.onchange = rangeChanged;
-pixelizeui.submit.onclick = submitPressed;
-function rangeChanged() {
-    pixelizeui.submit.value = pixelizeui.range.value + "색 팔레트 만들기!";
-}
-function submitPressed() {
-    pixelizeButton(Number.parseInt(pixelizeui.range.value));
+class QuantizeUI {
+    
+    private static Worker = new Worker('wasmworker.js', {type: 'module'});
+    private static div = document.querySelector('#newmenu') as HTMLDivElement;
+    private static submit = document.querySelector('#newmenu > .menubutton') as HTMLInputElement;
+    private static range = document.querySelector('#menuslider') as HTMLInputElement;
+    
+    static {
+        QuantizeUI.div.style.display = "none";
+        QuantizeUI.range.onchange = QuantizeUI.rangeChanged;
+        QuantizeUI.submit.onclick = QuantizeUI.submitPressed;
+        QuantizeUI.Worker.onmessage = QuantizeUI.onGetPaletteImage;
+    }
+
+    private static rangeChanged() {
+        QuantizeUI.submit.value = QuantizeUI.range.value + "색 팔레트 만들기!";
+    }
+    private static async submitPressed() {
+        var colors = QuantizeUI.range.value;
+        
+        var data: ImageData = await makeCanvas(url);
+        QuantizeUI.Worker.postMessage([data, colors, 1.0]);
+        QuantizeUI.submit.disabled = true;
+    }
+    private static onGetPaletteImage(e: any) {
+        QuantizeUI.submit.disabled = false;
+        var worked : Uint8ClampedArray = e.data;
+        console.log(worked);
+        var pixelized = imageBlob(worked.buffer);
+        var pixelcolors = splitColors(rust.read_palette(new Uint8ClampedArray(worked)));
+    
+        if (pixeldata == undefined) {
+            RecolorUI.SetColors(pixelcolors);
+            RecolorUI.Show();
+        } else {
+            RecolorUI.SetColors(pixelcolors);
+        }
+        pixeldata = pixelized;
+        setUItoImage(createUrl(pixelized));
+    }
+    public static Show() {
+        QuantizeUI.div.style.display = "";
+    }
 }
 
-var pixelui: secondUI;
-pixelui = {
-    div: document.querySelector('#palettemenu') as HTMLDivElement,
-    button: document.querySelector('#palettemenu > .menubutton') as HTMLInputElement,
-    colors: new Array<HTMLInputElement>(),
-    addColor: (self: secondUI, newcover: HTMLInputElement) => {
-        self.div.insertAdjacentElement("beforeend", newcover);
-        self.colors.push(newcover);
-    },
-};
-pixelui.div.style.display = "none";
-pixelui.button.addEventListener("click", downloadPressed);
+class RecolorUI {
+    static colors = new Array<HTMLInputElement>();
+    static div = document.querySelector('#palettemenu') as HTMLDivElement;
+    static button = document.querySelector('#palettemenu > .menubutton') as HTMLInputElement;
+
+    static {
+        RecolorUI.div.style.display = "none";
+        RecolorUI.button.addEventListener("click", downloadPressed);
+    }
+
+    private static addColor(color: string, id: number) {
+        var newcover = document.createElement('input');
+        newcover.type = 'color';
+        newcover.value = `#${color}`;
+        newcover.id = id.toString();
+        newcover.addEventListener("change", RecolorUI.colorchanged.bind(newcover));
+        
+        RecolorUI.div.insertAdjacentElement("beforeend", newcover);
+        RecolorUI.colors.push(newcover);
+    }
+    public static SetColors(colors: Array<string>) {
+        for (var i = 0; i < colors.length; i++) {
+            if (RecolorUI.colors.length <= i) {
+                RecolorUI.addColor(colors[i], i);
+            } else {
+                RecolorUI.colors[i].value = `#${colors[i]}`;
+            }
+        }
+        while (colors.length < RecolorUI.colors.length) {
+            var moved = RecolorUI.colors.pop();
+            if (moved instanceof HTMLInputElement) {
+                moved.remove();
+            }
+        }
+        RecolorUI.button.ariaLabel = `파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
+        RecolorUI.button.focus();
+    }
+    public static Show() {
+        RecolorUI.div.style.display = "";
+        RecolorUI.button.focus();
+        RecolorUI.button.addEventListener('focusout', function() {
+            this.ariaLabel = `다운로드 버튼. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
+        });
+    }
+    private static async colorchanged(this: HTMLInputElement) {
+        if (pixeldata instanceof Blob) {
+    
+            var data = new Uint8ClampedArray(await pixeldata.arrayBuffer());
+            var no = Number.parseInt(this.id);
+            var color = getRGB(RecolorUI.colors[no].value);
+    
+            var newImage = rust.change_palette(data, Number.parseInt(this.id), 
+            color.r, color.g, color.b);
+            var blob = imageBlob(newImage);
+            
+            pixeldata = blob;
+            setUItoImage(createUrl(blob));
+        }
+    }
+}
 
 var newName = "palette.png";
 inputElement.addEventListener('change', function() {
@@ -61,7 +137,7 @@ async function readFile(event: ProgressEvent<FileReader>) {
         url = createUrl(blob);
 
         setUItoImage(url);
-        createInterface();
+        QuantizeUI.Show();
         colornizeIfPaletted(result, blob);
     }
 }
@@ -72,7 +148,7 @@ async function loadFile(width: number, height: number) {
     url = createUrl(blob);
     
     setUItoImage(url);
-    createInterface();
+    QuantizeUI.Show();
 }
 async function loadXHR(lorem: string) {
     return new Promise(function(resolve, reject) {
@@ -103,30 +179,15 @@ function setUItoImage(imageUrl: string) {
     roremElement.style.display = "none";
     pixelurl = imageUrl;
 }
-type firstUI = {
-    div: HTMLDivElement,
-    range: HTMLInputElement,
-    submit: HTMLInputElement,
-}
-function createInterface() {
-    pixelizeui.div.style.display = "";
-}
 function colornizeIfPaletted(data: ArrayBuffer, blob: Blob) {
     var colors = rust.read_palette(new Uint8ClampedArray(data));
     if (colors.length != 0) {
         pixeldata = blob;
-        createNextInterface(splitColors(colors));
+        RecolorUI.SetColors(splitColors(colors));
+        RecolorUI.Show();
     }
 }
 var pixeldata: Blob | undefined = undefined;
-
-type secondUI = {
-    div: HTMLDivElement;
-    button: HTMLInputElement;
-    colors: HTMLInputElement[];
-    
-    addColor: (self: secondUI, newcover: HTMLInputElement) => void;
-};
 
 function splitColors(data: Uint8ClampedArray): Array<string>{
     var array = [];
@@ -138,26 +199,6 @@ function splitColors(data: Uint8ClampedArray): Array<string>{
 }
 
 var url = "";
-async function pixelizeButton(colors: number) {
-    var data: ImageData = await makeCanvas(url);
-    quantizeWorker.postMessage([data, colors, 1.0]);
-    pixelizeui.submit.disabled = true;
-}
-quantizeWorker.onmessage = e => {
-    pixelizeui.submit.disabled = false;
-    var worked : Uint8ClampedArray = e.data;
-    console.log(worked);
-    var pixelized = imageBlob(worked.buffer);
-    var pixelcolors = splitColors(rust.read_palette(new Uint8ClampedArray(worked)));
-
-    if (pixeldata == undefined) {
-        createNextInterface(pixelcolors);
-    } else {
-        modifyColors(pixelcolors);
-    }
-    pixeldata = pixelized;
-    setUItoImage(createUrl(pixelized));
-};
 
 async function makeCanvas(blob: string): Promise<ImageData> {
     const img = document.createElement('img');
@@ -169,56 +210,6 @@ async function makeCanvas(blob: string): Promise<ImageData> {
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
     ctx.drawImage(img, 0, 0);
     return ctx.getImageData(0, 0, img.width, img.height);
-}
-function createNextInterface(colors: Array<string>) {
-    pixelui.div.style.display = "";
-    pixelui.button.focus();
-    pixelui.button.addEventListener('focusout', function() {
-        this.ariaLabel = `다운로드 버튼. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
-    });
-    modifyColors(colors);
-}
-function makeNewcover(color: string, id: number): HTMLInputElement {
-    var newcover = document.createElement('input');
-    newcover.type = 'color';
-    newcover.value = `#${color}`;
-    newcover.id = id.toString();
-    newcover.addEventListener("change", colorchanged.bind(newcover));
-    return newcover;
-}
-function modifyColors(colors: Array<string>) {
-    var value = pixelui;
-    for (var i = 0; i < colors.length; i++) {
-        if (value.colors.length <= i) {
-            var newcover = makeNewcover(colors[i], i);
-            value.addColor(value, newcover);
-        } else {
-            value.colors[i].value = `#${colors[i]}`;
-        }
-    }
-    while (colors.length < value.colors.length) {
-        var moved = value.colors.pop();
-        if (moved instanceof HTMLInputElement) {
-            moved.remove();
-        }
-    }
-    value.button.ariaLabel = `파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
-    value.button.focus();
-}
-async function colorchanged(this: HTMLInputElement) {
-    if (pixeldata instanceof Blob) {
-
-        var data = new Uint8ClampedArray(await pixeldata.arrayBuffer());
-        var no = Number.parseInt(this.id);
-        var color = getRGB(pixelui.colors[no].value);
-
-        var newImage = rust.change_palette(data, Number.parseInt(this.id), 
-        color.r, color.g, color.b);
-        var blob = imageBlob(newImage);
-        
-        pixeldata = blob;
-        setUItoImage(createUrl(blob));
-    }
 }
 function getRGB(color: string): {r: number, g: number, b:number} {
     return {

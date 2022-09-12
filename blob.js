@@ -1,35 +1,101 @@
 import * as rust from "./pkg/palette_png.js";
 rust.default();
-var quantizeWorker = new Worker('wasmworker.js', { type: 'module' });
 const inputElement = document.querySelector('body > div > input.file');
 const roremElement = document.querySelector('body > div > input.rorem');
-var pixelizeui;
-pixelizeui = {
-    div: document.querySelector('#newmenu'),
-    submit: document.querySelector('#newmenu > .menubutton'),
-    range: document.querySelector('#menuslider'),
-};
-pixelizeui.div.style.display = "none";
-pixelizeui.range.onchange = rangeChanged;
-pixelizeui.submit.onclick = submitPressed;
-function rangeChanged() {
-    pixelizeui.submit.value = pixelizeui.range.value + "색 팔레트 만들기!";
+class QuantizeUI {
+    static rangeChanged() {
+        QuantizeUI.submit.value = QuantizeUI.range.value + "색 팔레트 만들기!";
+    }
+    static async submitPressed() {
+        var colors = QuantizeUI.range.value;
+        var data = await makeCanvas(url);
+        QuantizeUI.Worker.postMessage([data, colors, 1.0]);
+        QuantizeUI.submit.disabled = true;
+    }
+    static onGetPaletteImage(e) {
+        QuantizeUI.submit.disabled = false;
+        var worked = e.data;
+        console.log(worked);
+        var pixelized = imageBlob(worked.buffer);
+        var pixelcolors = splitColors(rust.read_palette(new Uint8ClampedArray(worked)));
+        if (pixeldata == undefined) {
+            RecolorUI.SetColors(pixelcolors);
+            RecolorUI.Show();
+        }
+        else {
+            RecolorUI.SetColors(pixelcolors);
+        }
+        pixeldata = pixelized;
+        setUItoImage(createUrl(pixelized));
+    }
+    static Show() {
+        QuantizeUI.div.style.display = "";
+    }
 }
-function submitPressed() {
-    pixelizeButton(Number.parseInt(pixelizeui.range.value));
+QuantizeUI.Worker = new Worker('wasmworker.js', { type: 'module' });
+QuantizeUI.div = document.querySelector('#newmenu');
+QuantizeUI.submit = document.querySelector('#newmenu > .menubutton');
+QuantizeUI.range = document.querySelector('#menuslider');
+(() => {
+    QuantizeUI.div.style.display = "none";
+    QuantizeUI.range.onchange = QuantizeUI.rangeChanged;
+    QuantizeUI.submit.onclick = QuantizeUI.submitPressed;
+    QuantizeUI.Worker.onmessage = QuantizeUI.onGetPaletteImage;
+})();
+class RecolorUI {
+    static addColor(color, id) {
+        var newcover = document.createElement('input');
+        newcover.type = 'color';
+        newcover.value = `#${color}`;
+        newcover.id = id.toString();
+        newcover.addEventListener("change", RecolorUI.colorchanged.bind(newcover));
+        RecolorUI.div.insertAdjacentElement("beforeend", newcover);
+        RecolorUI.colors.push(newcover);
+    }
+    static SetColors(colors) {
+        for (var i = 0; i < colors.length; i++) {
+            if (RecolorUI.colors.length <= i) {
+                RecolorUI.addColor(colors[i], i);
+            }
+            else {
+                RecolorUI.colors[i].value = `#${colors[i]}`;
+            }
+        }
+        while (colors.length < RecolorUI.colors.length) {
+            var moved = RecolorUI.colors.pop();
+            if (moved instanceof HTMLInputElement) {
+                moved.remove();
+            }
+        }
+        RecolorUI.button.ariaLabel = `파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
+        RecolorUI.button.focus();
+    }
+    static Show() {
+        RecolorUI.div.style.display = "";
+        RecolorUI.button.focus();
+        RecolorUI.button.addEventListener('focusout', function () {
+            this.ariaLabel = `다운로드 버튼. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
+        });
+    }
+    static async colorchanged() {
+        if (pixeldata instanceof Blob) {
+            var data = new Uint8ClampedArray(await pixeldata.arrayBuffer());
+            var no = Number.parseInt(this.id);
+            var color = getRGB(RecolorUI.colors[no].value);
+            var newImage = rust.change_palette(data, Number.parseInt(this.id), color.r, color.g, color.b);
+            var blob = imageBlob(newImage);
+            pixeldata = blob;
+            setUItoImage(createUrl(blob));
+        }
+    }
 }
-var pixelui;
-pixelui = {
-    div: document.querySelector('#palettemenu'),
-    button: document.querySelector('#palettemenu > .menubutton'),
-    colors: new Array(),
-    addColor: (self, newcover) => {
-        self.div.insertAdjacentElement("beforeend", newcover);
-        self.colors.push(newcover);
-    },
-};
-pixelui.div.style.display = "none";
-pixelui.button.addEventListener("click", downloadPressed);
+RecolorUI.colors = new Array();
+RecolorUI.div = document.querySelector('#palettemenu');
+RecolorUI.button = document.querySelector('#palettemenu > .menubutton');
+(() => {
+    RecolorUI.div.style.display = "none";
+    RecolorUI.button.addEventListener("click", downloadPressed);
+})();
 var newName = "palette.png";
 inputElement.addEventListener('change', function () {
     if (inputElement.files instanceof FileList) {
@@ -55,7 +121,7 @@ async function readFile(event) {
         var blob = imageBlob(result);
         url = createUrl(blob);
         setUItoImage(url);
-        createInterface();
+        QuantizeUI.Show();
         colornizeIfPaletted(result, blob);
     }
 }
@@ -65,7 +131,7 @@ async function loadFile(width, height) {
     });
     url = createUrl(blob);
     setUItoImage(url);
-    createInterface();
+    QuantizeUI.Show();
 }
 async function loadXHR(lorem) {
     return new Promise(function (resolve, reject) {
@@ -100,14 +166,12 @@ function setUItoImage(imageUrl) {
     roremElement.style.display = "none";
     pixelurl = imageUrl;
 }
-function createInterface() {
-    pixelizeui.div.style.display = "";
-}
 function colornizeIfPaletted(data, blob) {
     var colors = rust.read_palette(new Uint8ClampedArray(data));
     if (colors.length != 0) {
         pixeldata = blob;
-        createNextInterface(splitColors(colors));
+        RecolorUI.SetColors(splitColors(colors));
+        RecolorUI.Show();
     }
 }
 var pixeldata = undefined;
@@ -120,26 +184,6 @@ function splitColors(data) {
     return array;
 }
 var url = "";
-async function pixelizeButton(colors) {
-    var data = await makeCanvas(url);
-    quantizeWorker.postMessage([data, colors, 1.0]);
-    pixelizeui.submit.disabled = true;
-}
-quantizeWorker.onmessage = e => {
-    pixelizeui.submit.disabled = false;
-    var worked = e.data;
-    console.log(worked);
-    var pixelized = imageBlob(worked.buffer);
-    var pixelcolors = splitColors(rust.read_palette(new Uint8ClampedArray(worked)));
-    if (pixeldata == undefined) {
-        createNextInterface(pixelcolors);
-    }
-    else {
-        modifyColors(pixelcolors);
-    }
-    pixeldata = pixelized;
-    setUItoImage(createUrl(pixelized));
-};
 async function makeCanvas(blob) {
     const img = document.createElement('img');
     img.src = blob;
@@ -150,53 +194,6 @@ async function makeCanvas(blob) {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0);
     return ctx.getImageData(0, 0, img.width, img.height);
-}
-function createNextInterface(colors) {
-    pixelui.div.style.display = "";
-    pixelui.button.focus();
-    pixelui.button.addEventListener('focusout', function () {
-        this.ariaLabel = `다운로드 버튼. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
-    });
-    modifyColors(colors);
-}
-function makeNewcover(color, id) {
-    var newcover = document.createElement('input');
-    newcover.type = 'color';
-    newcover.value = `#${color}`;
-    newcover.id = id.toString();
-    newcover.addEventListener("change", colorchanged.bind(newcover));
-    return newcover;
-}
-function modifyColors(colors) {
-    var value = pixelui;
-    for (var i = 0; i < colors.length; i++) {
-        if (value.colors.length <= i) {
-            var newcover = makeNewcover(colors[i], i);
-            value.addColor(value, newcover);
-        }
-        else {
-            value.colors[i].value = `#${colors[i]}`;
-        }
-    }
-    while (colors.length < value.colors.length) {
-        var moved = value.colors.pop();
-        if (moved instanceof HTMLInputElement) {
-            moved.remove();
-        }
-    }
-    value.button.ariaLabel = `파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
-    value.button.focus();
-}
-async function colorchanged() {
-    if (pixeldata instanceof Blob) {
-        var data = new Uint8ClampedArray(await pixeldata.arrayBuffer());
-        var no = Number.parseInt(this.id);
-        var color = getRGB(pixelui.colors[no].value);
-        var newImage = rust.change_palette(data, Number.parseInt(this.id), color.r, color.g, color.b);
-        var blob = imageBlob(newImage);
-        pixeldata = blob;
-        setUItoImage(createUrl(blob));
-    }
 }
 function getRGB(color) {
     return {
