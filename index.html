@@ -11,13 +11,20 @@
     <div class="bg">
         <input class="file" type="file" name="fileupload" accept="image/*" aria-label="스페이스 바를 눌러 꾸미기 위해 사용할 사진을 선택할 수 있습니다." autofocus/>
         <input class="rorem" type="button" value="...또는 적당한 이미지 사용하기" />
+        <div id="newmenu">
+            <input class="menubutton" aria-label="이미지를 몇 개의 색만을 가지도록 변환합니다. 이 작업은 몇 초 정도 걸립니다." type="button" value="4색 팔레트 만들기!">
+            <input id="menuslider" aria-label="이미지를 변환할 때 사용할 색 개수" type="range" min="2" value="4" max="256">
+        </div>
+        <div id="palettemenu">
+            <input class="menubutton" type="button" value="다운로드" aria-label="파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.">
+        </div>
     </div>
     <footer class="github">
-        <svg width="64" height="64" aria-hidden="true" viewBox="0 0 16 16" version="1.1" data-view-component="true" tabindex="0" aria-label="이 아래에는 오픈 소스 정보가 적혀 있습니다." class="github_img">
+        <a href="https://github.com/hyuckkim/Online-ModernArt-Maker" aria-label="깃허브 페이지"><svg width="64" height="64" aria-hidden="true" viewBox="0 0 16 16" version="1.1" data-view-component="true" tabindex="0" aria-label="이 아래에는 오픈 소스 정보가 적혀 있습니다." class="github_img">
         <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
-    </svg>
+    </svg></a>
     <article>
-        <p><a href="https://github.com/hyuckkim/Online-ModernArt-Maker">이 사이트는 오픈 소스로 공개됩니다.</a> 이 사이트는 다음 라이브러리들을 사용합니다 : </p>
+        <p>이 사이트는 다음 라이브러리들을 사용합니다 : </p>
         <section><a href="https://docs.rs/crate/imagequant" tabindex="-1">imagequant</a> : 이미지를 몇몇 색상만 사용하도록 바꿔주는 멋진 라이브러리입니다. <a class="github_link" href="https://docs.rs/crate/imagequant">https://docs.rs/crate/imagequant</a>
         </section>
         <section><a href="https://rustwasm.github.io/" tabindex="-1">rust-bindgen</a> : 러스트 프로그램을 온라인에서 실행할 수 있게 해주는 라이브러리입니다. <a class="github_link" href="https://rustwasm.github.io/">https://rustwasm.github.io/</a>

@@ -61,7 +61,7 @@ body, html {
     width: calc(100% - 4px);
     border: 2px solid#3f3f3f;
 }
-#menubutton {
+.menubutton {
     width: 100%;
     text-align: center;
 }

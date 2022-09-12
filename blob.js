@@ -3,6 +3,33 @@ rust.default();
 var quantizeWorker = new Worker('wasmworker.js', { type: 'module' });
 const inputElement = document.querySelector('body > div > input.file');
 const roremElement = document.querySelector('body > div > input.rorem');
+var pixelizeui;
+pixelizeui = {
+    div: document.querySelector('#newmenu'),
+    submit: document.querySelector('#newmenu > .menubutton'),
+    range: document.querySelector('#menuslider'),
+};
+pixelizeui.div.style.display = "none";
+pixelizeui.range.onchange = rangeChanged;
+pixelizeui.submit.onclick = submitPressed;
+function rangeChanged() {
+    pixelizeui.submit.value = pixelizeui.range.value + "색 팔레트 만들기!";
+}
+function submitPressed() {
+    pixelizeButton(Number.parseInt(pixelizeui.range.value));
+}
+var pixelui;
+pixelui = {
+    div: document.querySelector('#palettemenu'),
+    button: document.querySelector('#palettemenu > .menubutton'),
+    colors: new Array(),
+    addColor: (self, newcover) => {
+        self.div.insertAdjacentElement("beforeend", newcover);
+        self.colors.push(newcover);
+    },
+};
+pixelui.div.style.display = "none";
+pixelui.button.addEventListener("click", downloadPressed);
 var newName = "palette.png";
 inputElement.addEventListener('change', function () {
     if (inputElement.files instanceof FileList) {
@@ -28,7 +55,7 @@ async function readFile(event) {
         var blob = imageBlob(result);
         url = createUrl(blob);
         setUItoImage(url);
-        createInterface(bgElement);
+        createInterface();
         colornizeIfPaletted(result, blob);
     }
 }
@@ -38,7 +65,7 @@ async function loadFile(width, height) {
     });
     url = createUrl(blob);
     setUItoImage(url);
-    createInterface(bgElement);
+    createInterface();
 }
 async function loadXHR(lorem) {
     return new Promise(function (resolve, reject) {
@@ -73,23 +100,8 @@ function setUItoImage(imageUrl) {
     roremElement.style.display = "none";
     pixelurl = imageUrl;
 }
-var pixelizeui;
-function createInterface(bg) {
-    bg.insertAdjacentHTML('beforeend', `<div id="newmenu"><input id="menubutton" aria-label="이미지를 몇 개의 색만을 가지도록 변환합니다. 이 작업은 몇 초 정도 걸립니다." type="button" value="4색 팔레트 만들기!"><input id="menuslider" aria-label="이미지를 변환할 때 사용할 색 개수" type="range" min="2" value="4" max="256"></div>`);
-    pixelizeui = {
-        div: bg.querySelector('div'),
-        submit: bg.querySelector('div > input[type=button]:nth-child(1)'),
-        range: bg.querySelector('div > input[type=range]:nth-child(2)'),
-    };
-    pixelizeui.range.onchange = rangeChanged;
-    pixelizeui.submit.onclick = submitPressed;
-    return pixelizeui;
-    function rangeChanged() {
-        pixelizeui.submit.value = pixelizeui.range.value + "색 팔레트 만들기!";
-    }
-    function submitPressed() {
-        pixelizeButton(Number.parseInt(pixelizeui.range.value));
-    }
+function createInterface() {
+    pixelizeui.div.style.display = "";
 }
 function colornizeIfPaletted(data, blob) {
     var colors = rust.read_palette(new Uint8ClampedArray(data));
@@ -99,7 +111,6 @@ function colornizeIfPaletted(data, blob) {
     }
 }
 var pixeldata = undefined;
-var pixelui;
 function splitColors(data) {
     var array = [];
     for (var i = 0; i < data.length / 3; i++) {
@@ -124,7 +135,7 @@ quantizeWorker.onmessage = e => {
         createNextInterface(pixelcolors);
     }
     else {
-        modifyNextInterface(pixelcolors);
+        modifyColors(pixelcolors);
     }
     pixeldata = pixelized;
     setUItoImage(createUrl(pixelized));
@@ -141,35 +152,12 @@ async function makeCanvas(blob) {
     return ctx.getImageData(0, 0, img.width, img.height);
 }
 function createNextInterface(colors) {
-    var value = {
-        div: document.createElement('div'),
-        button: document.createElement('input'),
-        colors: new Array(),
-        addColor: (self, newcover) => {
-            self.div.insertAdjacentElement("beforeend", newcover);
-            self.colors.push(newcover);
-        },
-    };
-    value.div.id = 'palettemenu';
-    value.button.id = 'menubutton';
-    value.button.type = 'button';
-    value.button.value = '다운로드';
-    value.button.addEventListener("click", downloadPressed);
-    bgElement.insertAdjacentElement("beforeend", value.div);
-    value.div.insertAdjacentElement("beforeend", value.button);
-    value.button.ariaLabel = `파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
-    value.button.focus();
-    value.button.addEventListener('focusout', function () {
+    pixelui.div.style.display = "";
+    pixelui.button.focus();
+    pixelui.button.addEventListener('focusout', function () {
         this.ariaLabel = `다운로드 버튼. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
     });
-    var i = 0;
-    colors.forEach(e => {
-        var newcover = makeNewcover(e, i);
-        value.addColor(value, newcover);
-        i++;
-    });
-    pixelui = value;
-    return value;
+    modifyColors(colors);
 }
 function makeNewcover(color, id) {
     var newcover = document.createElement('input');
@@ -179,7 +167,7 @@ function makeNewcover(color, id) {
     newcover.addEventListener("change", colorchanged.bind(newcover));
     return newcover;
 }
-function modifyNextInterface(colors) {
+function modifyColors(colors) {
     var value = pixelui;
     for (var i = 0; i < colors.length; i++) {
         if (value.colors.length <= i) {
