@@ -196,8 +196,8 @@ function colornizeIfPaletted(data: ArrayBuffer) {
 function splitColors(data: Uint8ClampedArray): Array<string>{
     var array = [];
     for (var i = 0; i < data.length / 3; i++) {
-        var r = data[i * 3].toString(16), g = data[i * 3 + 1].toString(16), b = data[i * 3 + 2].toString(16);
-        array.push(`${r}${g}${b}`);
+        var r = data[i * 3], g = data[i * 3 + 1], b = data[i * 3 + 2];
+        array.push(((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1));
     }
     return array;
 }
