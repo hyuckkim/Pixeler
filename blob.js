@@ -133,7 +133,12 @@ class BlobTool {
     }
     static UpdateImage() {
         if (this.data instanceof Blob) {
-            this.url = createUrl(this.data);
+            this.qurl = createUrl(this.data);
+        }
+        if (this.qurl != "") {
+            this.image = new Image();
+            this.image.src = this.qurl;
+            return this.image;
         }
         if (this.url != "") {
             this.image = new Image();
@@ -145,6 +150,7 @@ class BlobTool {
 BlobTool.data = undefined;
 BlobTool.image = undefined;
 BlobTool.url = "";
+BlobTool.qurl = "";
 class CanvasLogic {
     static StartDraw() {
         this.canvas.style.display = "";
@@ -271,7 +277,7 @@ function createUrl(blob) {
 function setUItoImage(imageUrl) {
     inputElement.style.display = "none";
     roremElement.style.display = "none";
-    pixelurl = imageUrl;
+    BlobTool.qurl = imageUrl;
     BlobTool.UpdateImage();
 }
 function colornizeIfPaletted(data) {
@@ -307,11 +313,10 @@ function getRGB(color) {
         b: Number.parseInt(`0x${color[5]}${color[6]}`)
     };
 }
-var pixelurl = "";
 function downloadPressed() {
     var a = document.createElement('a');
     a.download = newName;
-    a.href = pixelurl;
+    a.href = BlobTool.qurl;
     a.click();
 }
 function makeNewName(oldName) {

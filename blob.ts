@@ -122,6 +122,7 @@ class BlobTool {
     public static data: Blob | undefined = undefined;
     private static image: HTMLImageElement | undefined = undefined;
     public static url = "";
+    public static qurl = "";
 
     public static async ChangePalette(id: number, color: {r: number, g: number, b: number}): Promise<Blob | undefined> {
         if (!(BlobTool.data instanceof Blob)) return undefined;
@@ -144,7 +145,12 @@ class BlobTool {
     }
     public static UpdateImage() {
         if (this.data instanceof Blob) {
-            this.url = createUrl(this.data);
+            this.qurl = createUrl(this.data);
+        }
+        if (this.qurl != "") {
+            this.image = new Image();
+            this.image.src = this.qurl;
+            return this.image;
         }
         if (this.url != "") {
             this.image = new Image();
@@ -287,7 +293,7 @@ function createUrl(blob: Blob): string {
 function setUItoImage(imageUrl: string) {
     inputElement.style.display = "none";
     roremElement.style.display = "none";
-    pixelurl = imageUrl;
+    BlobTool.qurl = imageUrl;
     BlobTool.UpdateImage();
 }
 function colornizeIfPaletted(data: ArrayBuffer) {
@@ -326,11 +332,10 @@ function getRGB(color: string): {r: number, g: number, b:number} {
         b: Number.parseInt(`0x${color[5]}${color[6]}`)
     };
 }
-var pixelurl = "";
 function downloadPressed() {
     var a = document.createElement('a');
     a.download = newName;
-    a.href = pixelurl;
+    a.href = BlobTool.qurl;
     a.click();
 }
 function makeNewName(oldName: string): string {
