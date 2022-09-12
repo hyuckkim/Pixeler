@@ -18,6 +18,13 @@ roremElement.addEventListener('click', async function() {
     await loadFile(600, 600);
     roremElement.disabled = false;
 });
+
+(document.querySelector('#plusbutton') as HTMLInputElement).addEventListener('click', function() {
+    QuantizeUI.ModifyRange(1);
+});
+(document.querySelector('#minusbutton') as HTMLInputElement).addEventListener('click', function() {
+    QuantizeUI.ModifyRange(-1);
+});
 class QuantizeUI {
     private static Worker = new Worker('wasmworker.js', {type: 'module'});
     private static div = document.querySelector('#newmenu') as HTMLDivElement;
@@ -59,6 +66,14 @@ class QuantizeUI {
     public static Show() {
         QuantizeUI.div.style.display = "";
         QuantizeUI.isactivated = true;
+    }
+    public static ModifyRange(i: number) {
+        var res = i + Number.parseInt(this.range.value);
+        if (res > Number.parseInt(this.range.max)) res = Number.parseInt(this.range.max);
+        if (res < Number.parseInt(this.range.min)) res = Number.parseInt(this.range.min);
+
+        this.range.value = res.toString();
+        this.rangeChanged();
     }
 }
 
@@ -181,6 +196,8 @@ class CanvasLogic {
         this.canvas.addEventListener('mousedown', this.OnMouseDown);
         this.canvas.addEventListener('mousemove', this.OnMouseMove);
         this.canvas.addEventListener('mouseup', this.OnMouseUp);
+        this.canvas.addEventListener('mouseout', this.OnMouseUp);
+        
         this.canvas.addEventListener('touchstart', this.OnHandDown);
         this.canvas.addEventListener('touchmove', this.OnHandMove);
         this.canvas.addEventListener('touechend', this.OnHandUp);

@@ -16,6 +16,12 @@ roremElement.addEventListener('click', async function () {
     await loadFile(600, 600);
     roremElement.disabled = false;
 });
+document.querySelector('#plusbutton').addEventListener('click', function () {
+    QuantizeUI.ModifyRange(1);
+});
+document.querySelector('#minusbutton').addEventListener('click', function () {
+    QuantizeUI.ModifyRange(-1);
+});
 class QuantizeUI {
     static rangeChanged() {
         QuantizeUI.submit.value = QuantizeUI.range.value + "색 팔레트 만들기!";
@@ -42,6 +48,15 @@ class QuantizeUI {
     static Show() {
         QuantizeUI.div.style.display = "";
         QuantizeUI.isactivated = true;
+    }
+    static ModifyRange(i) {
+        var res = i + Number.parseInt(this.range.value);
+        if (res > Number.parseInt(this.range.max))
+            res = Number.parseInt(this.range.max);
+        if (res < Number.parseInt(this.range.min))
+            res = Number.parseInt(this.range.min);
+        this.range.value = res.toString();
+        this.rangeChanged();
     }
 }
 _a = QuantizeUI;
@@ -160,6 +175,7 @@ class CanvasLogic {
         this.canvas.addEventListener('mousedown', this.OnMouseDown);
         this.canvas.addEventListener('mousemove', this.OnMouseMove);
         this.canvas.addEventListener('mouseup', this.OnMouseUp);
+        this.canvas.addEventListener('mouseout', this.OnMouseUp);
         this.canvas.addEventListener('touchstart', this.OnHandDown);
         this.canvas.addEventListener('touchmove', this.OnHandMove);
         this.canvas.addEventListener('touechend', this.OnHandUp);
