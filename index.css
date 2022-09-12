@@ -50,8 +50,12 @@ body, html {
     }
 }
 
+@media screen and (min-width: 450px) {
+    #newmenu, #palettemenu {
+        width: 400px;
+    }
+}
 #newmenu, #palettemenu {
-    width:400px;
     background-color: #dbe1e4;
 
     border: 2px solid#3f3f3f;
@@ -65,12 +69,18 @@ body, html {
     top: 55px;
 }
 #menuslider {
-    width: calc(100% - 4px);
+    width: calc(100% - 100px);
     border: 2px solid#3f3f3f;
 }
 .menubutton {
     width: 100%;
     text-align: center;
+}
+.smallbutton {
+    width: 40px;
+    height: 30px;
+    padding: 0px;
+    align-self: center;
 }
 #menuarticle {
     background-color: #aea5a5;
