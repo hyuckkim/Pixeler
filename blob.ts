@@ -25,6 +25,8 @@ roremElement.addEventListener('click', async function() {
 (document.querySelector('#minusbutton') as HTMLInputElement).addEventListener('click', function() {
     QuantizeUI.ModifyRange(-1);
 });
+
+type rgbColor = {r: number, g: number, b:number};
 class QuantizeUI {
     private static Worker = new Worker('wasmworker.js', {type: 'module'});
     private static div = document.querySelector('#newmenu') as HTMLDivElement;
@@ -139,7 +141,7 @@ class BlobTool {
     public static url = "";
     public static qurl = "";
 
-    public static async ChangePalette(id: number, color: {r: number, g: number, b: number}): Promise<Blob | undefined> {
+    public static async ChangePalette(id: number, color: rgbColor): Promise<Blob | undefined> {
         if (!(BlobTool.data instanceof Blob)) return undefined;
         var data = new Uint8ClampedArray(await BlobTool.data.arrayBuffer());
         var newdata = rust.change_palette(data, id, color.r, color.g, color.b);
@@ -197,7 +199,7 @@ class CanvasLogic {
         this.canvas.addEventListener('mousemove', this.OnMouseMove);
         this.canvas.addEventListener('mouseup', this.OnMouseUp);
         this.canvas.addEventListener('mouseout', this.OnMouseUp);
-        
+
         this.canvas.addEventListener('touchstart', this.OnHandDown);
         this.canvas.addEventListener('touchmove', this.OnHandMove);
         this.canvas.addEventListener('touechend', this.OnHandUp);
@@ -342,7 +344,7 @@ async function makeCanvas(blob: string): Promise<ImageData> {
     ctx.drawImage(img, 0, 0);
     return ctx.getImageData(0, 0, img.width, img.height);
 }
-function getRGB(color: string): {r: number, g: number, b:number} {
+function getRGB(color: string): rgbColor {
     return {
         r: Number.parseInt(`0x${color[1]}${color[2]}`),
         g: Number.parseInt(`0x${color[3]}${color[4]}`),
