@@ -1,15 +1,29 @@
 import * as rust from "./pkg/palette_png.js";
 rust.default();
 
+var newName = "palette.png";
+
 const inputElement = document.querySelector('body > div > input.file') as HTMLInputElement;
 const roremElement = document.querySelector('body > div > input.rorem') as HTMLInputElement;
 
+inputElement.addEventListener('change', function() {
+    if (inputElement.files instanceof FileList) {
+        var file = inputElement.files[0];
+        readFileAndCallback(file, readFile);
+        newName = makeNewName(file.name);
+    }
+});
+roremElement.addEventListener('click', async function() {
+    roremElement.disabled = true;
+    await loadFile(600, 600);
+    roremElement.disabled = false;
+});
 class QuantizeUI {
-    
     private static Worker = new Worker('wasmworker.js', {type: 'module'});
     private static div = document.querySelector('#newmenu') as HTMLDivElement;
     private static submit = document.querySelector('#newmenu > .menubutton') as HTMLInputElement;
     private static range = document.querySelector('#menuslider') as HTMLInputElement;
+    public static isactivated = false;
     
     static {
         QuantizeUI.div.style.display = "none";
@@ -32,20 +46,18 @@ class QuantizeUI {
         QuantizeUI.submit.disabled = false;
         var worked : Uint8ClampedArray = e.data;
         console.log(worked);
-        var pixelized = imageBlob(worked.buffer);
+        var pixelized = BlobTool.MakeBufferToBlob(worked.buffer);
         var pixelcolors = splitColors(rust.read_palette(new Uint8ClampedArray(worked)));
     
-        if (pixeldata == undefined) {
-            RecolorUI.SetColors(pixelcolors);
+        RecolorUI.SetColors(pixelcolors);
+        if (!RecolorUI.isactivated) {
             RecolorUI.Show();
-        } else {
-            RecolorUI.SetColors(pixelcolors);
         }
-        pixeldata = pixelized;
         setUItoImage(createUrl(pixelized));
     }
     public static Show() {
         QuantizeUI.div.style.display = "";
+        QuantizeUI.isactivated = true;
     }
 }
 
@@ -53,6 +65,7 @@ class RecolorUI {
     static colors = new Array<HTMLInputElement>();
     static div = document.querySelector('#palettemenu') as HTMLDivElement;
     static button = document.querySelector('#palettemenu > .menubutton') as HTMLInputElement;
+    public static isactivated = false;
 
     static {
         RecolorUI.div.style.display = "none";
@@ -92,37 +105,35 @@ class RecolorUI {
         RecolorUI.button.addEventListener('focusout', function() {
             this.ariaLabel = `다운로드 버튼. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
         });
+        RecolorUI.isactivated = true;
     }
     private static async colorchanged(this: HTMLInputElement) {
-        if (pixeldata instanceof Blob) {
-    
-            var data = new Uint8ClampedArray(await pixeldata.arrayBuffer());
-            var no = Number.parseInt(this.id);
-            var color = getRGB(RecolorUI.colors[no].value);
-    
-            var newImage = rust.change_palette(data, Number.parseInt(this.id), 
-            color.r, color.g, color.b);
-            var blob = imageBlob(newImage);
-            
-            pixeldata = blob;
+        var no = Number.parseInt(this.id);
+        var color = getRGB(RecolorUI.colors[no].value);
+        var blob = await BlobTool.ChangePalette(no, color);
+        if (blob instanceof Blob) {
             setUItoImage(createUrl(blob));
         }
     }
 }
 
-var newName = "palette.png";
-inputElement.addEventListener('change', function() {
-    if (inputElement.files instanceof FileList) {
-        var file = inputElement.files[0];
-        readFileAndCallback(file, readFile);
-        newName = makeNewName(file.name);
+class BlobTool {
+    public static data: Blob | undefined = undefined;
+
+    public static async ChangePalette(id: number, color: {r: number, g: number, b: number}): Promise<Blob | undefined> {
+        if (!(BlobTool.data instanceof Blob)) return undefined;
+        var data = new Uint8ClampedArray(await BlobTool.data.arrayBuffer());
+        var newdata = rust.change_palette(data, id, color.r, color.g, color.b);
+
+        BlobTool.data = BlobTool.MakeBufferToBlob(newdata);
+        return BlobTool.data;
     }
-});
-roremElement.addEventListener('click', async function() {
-    roremElement.disabled = true;
-    await loadFile(600, 600);
-    roremElement.disabled = false;
-});
+    public static MakeBufferToBlob(data: ArrayBuffer): Blob {
+        var blob = new Blob([data], {type:'image/*'});
+        BlobTool.data = blob;
+        return blob;
+    }
+}
 function readFileAndCallback(file: File, callback: (this: FileReader, ev: ProgressEvent<FileReader>) => any) {
     var reader = new FileReader();
     reader.addEventListener('load', callback);
@@ -133,12 +144,12 @@ async function readFile(event: ProgressEvent<FileReader>) {
     if (event.target instanceof FileReader && event.target.result instanceof ArrayBuffer) {
         var result = event.target.result;
 
-        var blob = imageBlob(result);
+        var blob = BlobTool.MakeBufferToBlob(result);
         url = createUrl(blob);
 
         setUItoImage(url);
         QuantizeUI.Show();
-        colornizeIfPaletted(result, blob);
+        colornizeIfPaletted(result);
     }
 }
 async function loadFile(width: number, height: number) {
@@ -163,11 +174,6 @@ async function loadXHR(lorem: string) {
         xhr.send();
     });
 }
-function imageBlob(data: ArrayBuffer): Blob {
-    var property = {type:'image/*'};
-    var blob = new Blob([data], property);
-    return blob;
-}
 function createUrl(blob: Blob): string {
     var urlCreator = window.URL || window.webkitURL;
     var imageUrl = urlCreator.createObjectURL(blob);
@@ -179,15 +185,13 @@ function setUItoImage(imageUrl: string) {
     roremElement.style.display = "none";
     pixelurl = imageUrl;
 }
-function colornizeIfPaletted(data: ArrayBuffer, blob: Blob) {
+function colornizeIfPaletted(data: ArrayBuffer) {
     var colors = rust.read_palette(new Uint8ClampedArray(data));
     if (colors.length != 0) {
-        pixeldata = blob;
         RecolorUI.SetColors(splitColors(colors));
         RecolorUI.Show();
     }
 }
-var pixeldata: Blob | undefined = undefined;
 
 function splitColors(data: Uint8ClampedArray): Array<string>{
     var array = [];

@@ -1,7 +1,20 @@
 import * as rust from "./pkg/palette_png.js";
 rust.default();
+var newName = "palette.png";
 const inputElement = document.querySelector('body > div > input.file');
 const roremElement = document.querySelector('body > div > input.rorem');
+inputElement.addEventListener('change', function () {
+    if (inputElement.files instanceof FileList) {
+        var file = inputElement.files[0];
+        readFileAndCallback(file, readFile);
+        newName = makeNewName(file.name);
+    }
+});
+roremElement.addEventListener('click', async function () {
+    roremElement.disabled = true;
+    await loadFile(600, 600);
+    roremElement.disabled = false;
+});
 class QuantizeUI {
     static rangeChanged() {
         QuantizeUI.submit.value = QuantizeUI.range.value + "색 팔레트 만들기!";
@@ -16,26 +29,24 @@ class QuantizeUI {
         QuantizeUI.submit.disabled = false;
         var worked = e.data;
         console.log(worked);
-        var pixelized = imageBlob(worked.buffer);
+        var pixelized = BlobTool.MakeBufferToBlob(worked.buffer);
         var pixelcolors = splitColors(rust.read_palette(new Uint8ClampedArray(worked)));
-        if (pixeldata == undefined) {
-            RecolorUI.SetColors(pixelcolors);
+        RecolorUI.SetColors(pixelcolors);
+        if (!RecolorUI.isactivated) {
             RecolorUI.Show();
         }
-        else {
-            RecolorUI.SetColors(pixelcolors);
-        }
-        pixeldata = pixelized;
         setUItoImage(createUrl(pixelized));
     }
     static Show() {
         QuantizeUI.div.style.display = "";
+        QuantizeUI.isactivated = true;
     }
 }
 QuantizeUI.Worker = new Worker('wasmworker.js', { type: 'module' });
 QuantizeUI.div = document.querySelector('#newmenu');
 QuantizeUI.submit = document.querySelector('#newmenu > .menubutton');
 QuantizeUI.range = document.querySelector('#menuslider');
+QuantizeUI.isactivated = false;
 (() => {
     QuantizeUI.div.style.display = "none";
     QuantizeUI.range.onchange = QuantizeUI.rangeChanged;
@@ -76,15 +87,13 @@ class RecolorUI {
         RecolorUI.button.addEventListener('focusout', function () {
             this.ariaLabel = `다운로드 버튼. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
         });
+        RecolorUI.isactivated = true;
     }
     static async colorchanged() {
-        if (pixeldata instanceof Blob) {
-            var data = new Uint8ClampedArray(await pixeldata.arrayBuffer());
-            var no = Number.parseInt(this.id);
-            var color = getRGB(RecolorUI.colors[no].value);
-            var newImage = rust.change_palette(data, Number.parseInt(this.id), color.r, color.g, color.b);
-            var blob = imageBlob(newImage);
-            pixeldata = blob;
+        var no = Number.parseInt(this.id);
+        var color = getRGB(RecolorUI.colors[no].value);
+        var blob = await BlobTool.ChangePalette(no, color);
+        if (blob instanceof Blob) {
             setUItoImage(createUrl(blob));
         }
     }
@@ -92,23 +101,27 @@ class RecolorUI {
 RecolorUI.colors = new Array();
 RecolorUI.div = document.querySelector('#palettemenu');
 RecolorUI.button = document.querySelector('#palettemenu > .menubutton');
+RecolorUI.isactivated = false;
 (() => {
     RecolorUI.div.style.display = "none";
     RecolorUI.button.addEventListener("click", downloadPressed);
 })();
-var newName = "palette.png";
-inputElement.addEventListener('change', function () {
-    if (inputElement.files instanceof FileList) {
-        var file = inputElement.files[0];
-        readFileAndCallback(file, readFile);
-        newName = makeNewName(file.name);
+class BlobTool {
+    static async ChangePalette(id, color) {
+        if (!(BlobTool.data instanceof Blob))
+            return undefined;
+        var data = new Uint8ClampedArray(await BlobTool.data.arrayBuffer());
+        var newdata = rust.change_palette(data, id, color.r, color.g, color.b);
+        BlobTool.data = BlobTool.MakeBufferToBlob(newdata);
+        return BlobTool.data;
     }
-});
-roremElement.addEventListener('click', async function () {
-    roremElement.disabled = true;
-    await loadFile(600, 600);
-    roremElement.disabled = false;
-});
+    static MakeBufferToBlob(data) {
+        var blob = new Blob([data], { type: 'image/*' });
+        BlobTool.data = blob;
+        return blob;
+    }
+}
+BlobTool.data = undefined;
 function readFileAndCallback(file, callback) {
     var reader = new FileReader();
     reader.addEventListener('load', callback);
@@ -118,11 +131,11 @@ var bgElement = document.querySelector('body > div');
 async function readFile(event) {
     if (event.target instanceof FileReader && event.target.result instanceof ArrayBuffer) {
         var result = event.target.result;
-        var blob = imageBlob(result);
+        var blob = BlobTool.MakeBufferToBlob(result);
         url = createUrl(blob);
         setUItoImage(url);
         QuantizeUI.Show();
-        colornizeIfPaletted(result, blob);
+        colornizeIfPaletted(result);
     }
 }
 async function loadFile(width, height) {
@@ -150,11 +163,6 @@ async function loadXHR(lorem) {
         xhr.send();
     });
 }
-function imageBlob(data) {
-    var property = { type: 'image/*' };
-    var blob = new Blob([data], property);
-    return blob;
-}
 function createUrl(blob) {
     var urlCreator = window.URL || window.webkitURL;
     var imageUrl = urlCreator.createObjectURL(blob);
@@ -166,15 +174,13 @@ function setUItoImage(imageUrl) {
     roremElement.style.display = "none";
     pixelurl = imageUrl;
 }
-function colornizeIfPaletted(data, blob) {
+function colornizeIfPaletted(data) {
     var colors = rust.read_palette(new Uint8ClampedArray(data));
     if (colors.length != 0) {
-        pixeldata = blob;
         RecolorUI.SetColors(splitColors(colors));
         RecolorUI.Show();
     }
 }
-var pixeldata = undefined;
 function splitColors(data) {
     var array = [];
     for (var i = 0; i < data.length / 3; i++) {
