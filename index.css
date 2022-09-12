@@ -3,7 +3,9 @@
 
     background-position: center;
     background-repeat: no-repeat;
-    background-color: #aea5a5;
+}
+#pic {
+    pointer-events: none;
 }
 .github {
     width: 100%;
@@ -28,6 +30,7 @@
 .file {
     height: 90%;
     width: 100%;
+    background-color: #aea5a5;
 }
 .rorem {
     height: 10%;
@@ -55,7 +58,14 @@ body, html {
     background-color: #dbe1e4;
 
     border: 2px solid#3f3f3f;
-    border-radius: 8px;
+    z-index: 1;
+    position: absolute;
+}
+#newmenu {
+    top: 0px;
+}
+#palettemenu {
+    top: 55px;
 }
 #menuslider {
     width: calc(100% - 4px);

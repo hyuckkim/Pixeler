@@ -26,10 +26,10 @@ class QuantizeUI {
     public static isactivated = false;
     
     static {
-        QuantizeUI.div.style.display = "none";
-        QuantizeUI.range.onchange = QuantizeUI.rangeChanged;
-        QuantizeUI.submit.onclick = QuantizeUI.submitPressed;
-        QuantizeUI.Worker.onmessage = QuantizeUI.onGetPaletteImage;
+        this.div.style.display = "none";
+        this.range.onchange = this.rangeChanged;
+        this.submit.onclick = this.submitPressed;
+        this.Worker.onmessage = this.onGetPaletteImage;
     }
 
     private static rangeChanged() {
@@ -38,7 +38,7 @@ class QuantizeUI {
     private static async submitPressed() {
         var colors = QuantizeUI.range.value;
         
-        var data: ImageData = await makeCanvas(url);
+        var data: ImageData = await makeCanvas(BlobTool.url);
         QuantizeUI.Worker.postMessage([data, colors, 1.0]);
         QuantizeUI.submit.disabled = true;
     }
@@ -54,6 +54,7 @@ class QuantizeUI {
             RecolorUI.Show();
         }
         setUItoImage(createUrl(pixelized));
+        BlobTool.UpdateImage();
     }
     public static Show() {
         QuantizeUI.div.style.display = "";
@@ -68,8 +69,8 @@ class RecolorUI {
     public static isactivated = false;
 
     static {
-        RecolorUI.div.style.display = "none";
-        RecolorUI.button.addEventListener("click", downloadPressed);
+        this.div.style.display = "none";
+        this.button.addEventListener("click", downloadPressed);
     }
 
     private static addColor(color: string, id: number) {
@@ -77,35 +78,35 @@ class RecolorUI {
         newcover.type = 'color';
         newcover.value = `#${color}`;
         newcover.id = id.toString();
-        newcover.addEventListener("change", RecolorUI.colorchanged.bind(newcover));
+        newcover.addEventListener("change", this.colorchanged.bind(newcover));
         
-        RecolorUI.div.insertAdjacentElement("beforeend", newcover);
-        RecolorUI.colors.push(newcover);
+        this.div.insertAdjacentElement("beforeend", newcover);
+        this.colors.push(newcover);
     }
     public static SetColors(colors: Array<string>) {
         for (var i = 0; i < colors.length; i++) {
-            if (RecolorUI.colors.length <= i) {
-                RecolorUI.addColor(colors[i], i);
+            if (this.colors.length <= i) {
+                this.addColor(colors[i], i);
             } else {
-                RecolorUI.colors[i].value = `#${colors[i]}`;
+                this.colors[i].value = `#${colors[i]}`;
             }
         }
-        while (colors.length < RecolorUI.colors.length) {
-            var moved = RecolorUI.colors.pop();
+        while (colors.length < this.colors.length) {
+            var moved = this.colors.pop();
             if (moved instanceof HTMLInputElement) {
                 moved.remove();
             }
         }
-        RecolorUI.button.ariaLabel = `파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
-        RecolorUI.button.focus();
+        this.button.ariaLabel = `파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
+        this.button.focus();
     }
     public static Show() {
-        RecolorUI.div.style.display = "";
-        RecolorUI.button.focus();
-        RecolorUI.button.addEventListener('focusout', function() {
+        this.div.style.display = "";
+        this.button.focus();
+        this.button.addEventListener('focusout', function() {
             this.ariaLabel = `다운로드 버튼. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
         });
-        RecolorUI.isactivated = true;
+        this.isactivated = true;
     }
     private static async colorchanged(this: HTMLInputElement) {
         var no = Number.parseInt(this.id);
@@ -119,6 +120,8 @@ class RecolorUI {
 
 class BlobTool {
     public static data: Blob | undefined = undefined;
+    private static image: HTMLImageElement | undefined = undefined;
+    public static url = "";
 
     public static async ChangePalette(id: number, color: {r: number, g: number, b: number}): Promise<Blob | undefined> {
         if (!(BlobTool.data instanceof Blob)) return undefined;
@@ -133,22 +136,121 @@ class BlobTool {
         BlobTool.data = blob;
         return blob;
     }
+    public static GetImage(): HTMLImageElement | undefined {
+        if (this.image instanceof HTMLImageElement) return this.image;
+        else this.UpdateImage();
+
+        return this.image;
+    }
+    public static UpdateImage() {
+        if (this.data instanceof Blob) {
+            this.url = createUrl(this.data);
+        }
+        if (this.url != "") {
+            this.image = new Image();
+            this.image.src = this.url;
+            return this.image;
+        }
+    }
+}
+
+class CanvasLogic {
+    public static canvas = document.querySelector('body > div > canvas') as HTMLCanvasElement;
+    private static ctx: CanvasRenderingContext2D;
+    public static background = document.querySelector("body > div") as HTMLDivElement;
+
+    private static dx = 0;
+    private static dy = 0;
+    private static clicked = false;
+    static {
+        this.canvas.style.display = "none";
+        this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
+    }
+    public static StartDraw() {
+        this.canvas.style.display = "";
+        this.canvas.width = this.background.clientWidth;
+        this.canvas.height = this.background.clientHeight;
+        setInterval(this.Draw, 34);
+
+        this.canvas.addEventListener('mousedown', this.OnMouseDown);
+        this.canvas.addEventListener('mousemove', this.OnMouseMove);
+        this.canvas.addEventListener('mouseup', this.OnMouseUp);
+        this.canvas.addEventListener('touchstart', this.OnHandDown);
+        this.canvas.addEventListener('touchmove', this.OnHandMove);
+        this.canvas.addEventListener('touechend', this.OnHandUp);
+    }
+    private static Draw() {
+        var self = CanvasLogic;
+        var width = self.background.clientWidth, height = self.background.clientHeight;
+        self.canvas.width = width;
+        self.canvas.height = height;
+
+        self.ctx.beginPath();
+        self.ctx.fillStyle = "#aea5a5";
+        self.ctx.rect(0, 0, width, height);
+
+        self.ctx.fill();
+        var img = BlobTool.GetImage();
+        if (img instanceof HTMLImageElement) {
+            self.ctx.drawImage(img, (width - img.width) / 2 + self.dx, (height - img.height) / 2 + self.dy);
+        }
+    }
+
+    private static mouseX = 0;
+    private static mouseY = 0;
+    private static OnMouseDown(ev: MouseEvent) {
+        CanvasLogic.mouseX = ev.clientX;
+        CanvasLogic.mouseY = ev.clientY;
+
+        CanvasLogic.clicked = true;
+    }
+    private static OnMouseMove(ev: MouseEvent) {
+        if (CanvasLogic.clicked) {
+            CanvasLogic.dx += CanvasLogic.mouseX - ev.clientX;
+            CanvasLogic.dy += CanvasLogic.mouseY - ev.clientY;
+            
+            CanvasLogic.mouseX = ev.clientX;
+            CanvasLogic.mouseY = ev.clientY;
+        }
+    }
+    private static OnMouseUp() {
+        CanvasLogic.clicked = false;
+    }
+    private static OnHandDown(ev: TouchEvent) {
+        CanvasLogic.mouseX = ev.touches[0].clientX;
+        CanvasLogic.mouseY = ev.touches[0].clientY;
+
+        CanvasLogic.clicked = true;
+        ev.preventDefault();
+    }
+    private static OnHandMove(ev: TouchEvent) {
+        if (CanvasLogic.clicked) {
+            CanvasLogic.dx += CanvasLogic.mouseX - ev.touches[0].clientX;
+            CanvasLogic.dy += CanvasLogic.mouseY - ev.touches[0].clientY;
+            
+            CanvasLogic.mouseX = ev.touches[0].clientX;
+            CanvasLogic.mouseY = ev.touches[0].clientY;
+        }
+        ev.preventDefault();
+        return false;
+    }
+    private static OnHandUp() {
+        CanvasLogic.clicked = false;
+    }
 }
 function readFileAndCallback(file: File, callback: (this: FileReader, ev: ProgressEvent<FileReader>) => any) {
     var reader = new FileReader();
     reader.addEventListener('load', callback);
     reader.readAsArrayBuffer(file);
 }
-var bgElement = document.querySelector('body > div') as HTMLElement;
 async function readFile(event: ProgressEvent<FileReader>) {
     if (event.target instanceof FileReader && event.target.result instanceof ArrayBuffer) {
         var result = event.target.result;
 
         var blob = BlobTool.MakeBufferToBlob(result);
-        url = createUrl(blob);
+        BlobTool.url = createUrl(blob);
 
-        setUItoImage(url);
-        QuantizeUI.Show();
+        imageReady();
         colornizeIfPaletted(result);
     }
 }
@@ -156,10 +258,13 @@ async function loadFile(width: number, height: number) {
     var blob = await loadXHR(`https://picsum.photos/${width}/${height}`).then((response: any) => {
         return response;
     });
-    url = createUrl(blob);
-    
-    setUItoImage(url);
+    BlobTool.url = createUrl(blob);
+    imageReady();
+}
+function imageReady() {
+    setUItoImage(BlobTool.url);
     QuantizeUI.Show();
+    CanvasLogic.StartDraw();
 }
 async function loadXHR(lorem: string) {
     return new Promise(function(resolve, reject) {
@@ -180,10 +285,10 @@ function createUrl(blob: Blob): string {
     return imageUrl;
 }
 function setUItoImage(imageUrl: string) {
-    bgElement.style.backgroundImage = "url('" + imageUrl + "')";
     inputElement.style.display = "none";
     roremElement.style.display = "none";
     pixelurl = imageUrl;
+    BlobTool.UpdateImage();
 }
 function colornizeIfPaletted(data: ArrayBuffer) {
     var colors = rust.read_palette(new Uint8ClampedArray(data));
@@ -202,7 +307,6 @@ function splitColors(data: Uint8ClampedArray): Array<string>{
     return array;
 }
 
-var url = "";
 
 async function makeCanvas(blob: string): Promise<ImageData> {
     const img = document.createElement('img');
