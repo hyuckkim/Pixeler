@@ -29,7 +29,7 @@ class QuantizeUI {
     static async submitPressed() {
         var colors = QuantizeUI.range.value;
         var data = await makeCanvas(BlobTool.url);
-        QuantizeUI.Worker.postMessage([data, colors, 1.0]);
+        QuantizeUI.Worker.postMessage([data, colors, Number.parseInt(QuantizeUI.dithering.value) / 100]);
         QuantizeUI.submit.disabled = true;
     }
     static onGetPaletteImage(e) {
@@ -64,6 +64,7 @@ QuantizeUI.Worker = new Worker('wasmworker.js', { type: 'module' });
 QuantizeUI.div = document.querySelector('#newmenu');
 QuantizeUI.submit = document.querySelector('#newmenu > .menubutton');
 QuantizeUI.range = document.querySelector('#menuslider');
+QuantizeUI.dithering = document.querySelector('#ditheringslider');
 QuantizeUI.isactivated = false;
 (() => {
     _a.div.style.display = "none";

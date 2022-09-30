@@ -32,6 +32,8 @@ class QuantizeUI {
     private static div = document.querySelector('#newmenu') as HTMLDivElement;
     private static submit = document.querySelector('#newmenu > .menubutton') as HTMLInputElement;
     private static range = document.querySelector('#menuslider') as HTMLInputElement;
+    private static dithering = document.querySelector('#ditheringslider') as HTMLInputElement;
+
     public static isactivated = false;
     
     static {
@@ -48,7 +50,7 @@ class QuantizeUI {
         var colors = QuantizeUI.range.value;
         
         var data: ImageData = await makeCanvas(BlobTool.url);
-        QuantizeUI.Worker.postMessage([data, colors, 1.0]);
+        QuantizeUI.Worker.postMessage([data, colors, Number.parseInt(QuantizeUI.dithering.value) / 100]);
         QuantizeUI.submit.disabled = true;
     }
     private static onGetPaletteImage(e: any) {

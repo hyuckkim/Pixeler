@@ -66,11 +66,17 @@ body, html {
     top: 0px;
 }
 #palettemenu {
-    top: 55px;
+    top: 80px;
 }
 #menuslider {
     width: calc(100% - 100px);
     border: 2px solid#3f3f3f;
+}
+#ditheringslider {
+    width: calc(100% - 80px);
+}
+#ditheringtext {
+    font-size: 14px;
 }
 .menubutton {
     width: 100%;
