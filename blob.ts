@@ -5,8 +5,8 @@ var newName = "palette.png";
 
 class LoadPictureUI {
     private static root = document.querySelector('#menu_loadpicture') as HTMLDivElement;
-    private static input = document.querySelector('#menu_loadpicture > input.file') as HTMLInputElement;
-    private static rorem = document.querySelector('#menu_loadpicture > input.rorem') as HTMLInputElement;
+    private static input = document.querySelector('#menu_loadpicture > #file') as HTMLInputElement;
+    private static rorem = document.querySelector('#menu_loadpicture > #rorem') as HTMLInputElement;
 
     static {
         this.input.onchange = this.loadImage;
@@ -53,7 +53,7 @@ class LoadPictureUI {
         imageReady();
     }
     static hide() {
-        LoadPictureUI.root.style.display = "none";
+        LoadPictureUI.root.classList.add("hidden");
     }
 }
 
@@ -68,7 +68,7 @@ type rgbColor = {r: number, g: number, b:number};
 class QuantizeUI {
     private static Worker = new Worker('wasmworker.js', {type: 'module'});
     private static div = document.querySelector('#menu_quantize') as HTMLDivElement;
-    private static submit = document.querySelector('#menu_quantize > .menubutton') as HTMLInputElement;
+    private static submit = document.querySelector('#menu_quantize > #menubutton') as HTMLInputElement;
     private static range = document.querySelector('#menuslider') as HTMLInputElement;
     private static dithering = document.querySelector('#ditheringslider') as HTMLInputElement;
     private static gamma = document.querySelector('#gammaslider') as HTMLInputElement;
@@ -76,7 +76,6 @@ class QuantizeUI {
     public static isactivated = false;
     
     static {
-        this.div.style.display = "none";
         this.range.onchange = this.rangeChanged;
         this.submit.onclick = this.submitPressed;
         this.Worker.onmessage = this.onGetPaletteImage;
@@ -111,7 +110,7 @@ class QuantizeUI {
         BlobTool.UpdateImage();
     }
     public static Show() {
-        QuantizeUI.div.style.display = "";
+        QuantizeUI.div.classList.remove("hidden");
         QuantizeUI.isactivated = true;
     }
     public static ModifyRange(i: number) {
@@ -126,12 +125,12 @@ class QuantizeUI {
 
 class RecolorUI {
     static colors = new Array<HTMLInputElement>();
-    static div = document.querySelector('#menu_palette') as HTMLDivElement;
-    static button = document.querySelector('#menu_palette > .menubutton') as HTMLInputElement;
+    static root = document.querySelector('#menu_palette') as HTMLDivElement;
+    static div = document.querySelector('#menu_palette > #palette') as HTMLDivElement;
+    static button = document.querySelector('#menu_palette > #menubutton') as HTMLInputElement;
     public static isactivated = false;
 
     static {
-        this.div.style.display = "none";
         this.button.addEventListener("click", downloadPressed);
     }
 
@@ -163,7 +162,7 @@ class RecolorUI {
         this.button.focus();
     }
     public static Show() {
-        this.div.style.display = "";
+        this.root.classList.remove("hidden");
         this.button.focus();
         this.button.addEventListener('focusout', function() {
             this.ariaLabel = `다운로드 버튼. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
@@ -230,11 +229,10 @@ class CanvasLogic {
     private static dy = 0;
     private static clicked = false;
     static {
-        this.canvas.style.display = "none";
         this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
     }
     public static StartDraw() {
-        this.canvas.style.display = "";
+        this.canvas.classList.remove("hidden");
         this.canvas.width = document.body.clientWidth;
         this.canvas.height = document.body.clientHeight;
         setInterval(this.Draw, 34);

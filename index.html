@@ -5,40 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Online ModernArt Maker</title>
     <link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-gothic.css" rel="stylesheet">
+    <style>
+        * { font-family: 'NanumGothicLight'; }
+        body, html { height: 100%; margin: 0px }
+    </style>
     <link rel="stylesheet" href="index.css" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-    <canvas id="pic"></canvas>
-    <div id="menu_loadpicture">
-        <input class="file" type="file" name="fileupload" accept="image/*" aria-label="스페이스 바를 눌러 꾸미기 위해 사용할 사진을 선택할 수 있습니다." autofocus/>
-        <input class="rorem" type="button" value="...또는 적당한 이미지 사용하기" />
+    <canvas id="pic" class="hidden"></canvas>
+    <div id="menu_loadpicture" class="w-full h-full">
+        <input class="h-[90%] w-full bg-gray-300" id="file" type="file" name="fileupload" accept="image/*" aria-label="스페이스 바를 눌러 꾸미기 위해 사용할 사진을 선택할 수 있습니다." autofocus/>
+        <input class="h-[10%] w-full bg-gray-100 hover:bg-gray-400" id="rorem" type="button" value="...또는 적당한 이미지 사용하기" />
     </div>
-    <div id="menu_quantize">
-        <input class="menubutton" aria-label="이미지를 몇 개의 색만을 가지도록 변환합니다. 이 작업은 몇 초 정도 걸립니다." type="button" value="4색 팔레트 만들기!">
-        <input class="smallbutton" id="minusbutton" type="button" value="-" aria-hidden="true">
-        <input id="menuslider" aria-label="이미지를 변환할 때 사용할 색 개수" type="range" min="2" value="4" max="256">
-        <input class="smallbutton" id="plusbutton" type="button" value="+" aria-hidden="true">
-        <span id="ditheringtext">디더링 : </span><input aria-label="디더링" id="ditheringslider" type="range" min="0" value="100" max="100"> <br/>
-        <span id="gammatext">감마 : </span><input aria-label="감마" id="gammaslider" type="range" min="0" value="0" max="99">
-    </div>
-    <div id="menu_palette">
-        <input class="menubutton" type="button" value="다운로드" aria-label="파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.">
+    <div class="absolute top-0">
+        <div class="bg-gray-200 border-2 border-gray-700 rounded-md mb-0.5 hidden" id="menu_quantize">
+            <input class="w-full text-center border-b-2 border-gray-700 hover:bg-gray-500" id="menubutton" aria-label="이미지를 몇 개의 색만을 가지도록 변환합니다. 이 작업은 몇 초 정도 걸립니다." type="button" value="4색 팔레트 만들기!">
+            <div class="flex justify-between">
+                <input class="w-8 h-8 p-0 bg-gray-300 border-0 border-black hover:bg-gray-400" id="minusbutton" type="button" value="-" aria-hidden="true">
+                <input class="w-full" id="menuslider" aria-label="이미지를 변환할 때 사용할 색 개수" type="range" min="2" value="4" max="256">
+                <input class="w-8 h-8 o-0 bg-gray-300 border-0 border-black hover:bg-gray-400" id="plusbutton" type="button" value="+" aria-hidden="true">
+            </div>
+            <div class="flex justify-between">
+                <div class="w-16" id="ditheringtext">디더링 : </div>
+                <input class="w-80" aria-label="디더링" id="ditheringslider" type="range" min="0" value="100" max="100"> <br/>
+            </div>
+            <div class="flex justify-between">
+                <div class="w-16" id="gammatext">감마 : </div>
+                <input class="w-80" aria-label="감마" id="gammaslider" type="range" min="0" value="0" max="99">
+            </div>
+        </div>
+        <div class="bg-gray-200 border-2 border-gray-700 rounded-md hidden" id="menu_palette">
+            <input class="w-full text-center border-b-2 border-gray-700 hover:bg-gray-500" id="menubutton" type="button" value="다운로드" aria-label="파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.">
+            <div class="w-[400px]" id="palette"></div>
+        </div>
     </div>
     
-    <footer class="github">
-        <a href="https://github.com/hyuckkim/Pixeler" aria-label="깃허브 페이지"><svg width="64" height="64" aria-hidden="true" viewBox="0 0 16 16" version="1.1" data-view-component="true" tabindex="0" aria-label="이 아래에는 오픈 소스 정보가 적혀 있습니다." class="github_img">
+    <footer class="w-full bg-gray-200">
+        <a 
+            href="https://github.com/hyuckkim/Pixeler"
+            aria-label="깃허브 페이지">
+            <svg
+                class="block mx-auto my-0"
+                width="64" height="64" 
+                aria-hidden="true" 
+                viewBox="0 0 16 16" 
+                version="1.1" 
+                data-view-component="true" 
+                tabindex="0" 
+                aria-label="이 아래에는 오픈 소스 정보가 적혀 있습니다.">
         <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
     </svg></a>
     <article>
-        <p>이 사이트는 다음 라이브러리들을 사용합니다 : </p>
-        <section><a href="https://docs.rs/crate/imagequant" tabindex="-1">imagequant</a> : 이미지를 몇몇 색상만 사용하도록 바꿔주는 멋진 라이브러리입니다. <a class="github_link" href="https://docs.rs/crate/imagequant">https://docs.rs/crate/imagequant</a>
+        <p class="text-center">이 사이트는 다음 라이브러리들을 사용합니다 : </p>
+        <section class="text-center">
+            <a href="https://docs.rs/crate/imagequant">imagequant</a>
+             : 이미지를 몇몇 색상만 사용하도록 바꿔주는 멋진 라이브러리입니다.
+            <a class="hidden lg:inline" href="https://docs.rs/crate/imagequant" tabindex="-1">https://docs.rs/crate/imagequant</a>
         </section>
-        <section><a href="https://rustwasm.github.io/" tabindex="-1">rust-bindgen</a> : 러스트 프로그램을 온라인에서 실행할 수 있게 해주는 라이브러리입니다. <a class="github_link" href="https://rustwasm.github.io/">https://rustwasm.github.io/</a>
+        <section class="text-center">
+            <a href="https://rustwasm.github.io/">rust-bindgen</a>
+            : 러스트 프로그램을 온라인에서 실행할 수 있게 해주는 라이브러리입니다.
+            <a class="hidden lg:inline" href="https://rustwasm.github.io/" tabindex="-1">https://rustwasm.github.io/</a>
         </section>
-        <section><a href="https://picsum.photos/" tabindex="-1">lorem picsum</a> : 무작위 이미지를 빠르고 쉽게 가져올 수 있는 라이브러리입니다. <a class="github_link" href="https://picsum.photos">https://picsum.photos</a>
+        <section class="text-center">
+            <a href="https://picsum.photos/">lorem picsum</a>
+            : 무작위 이미지를 빠르고 쉽게 가져올 수 있는 라이브러리입니다.
+            <a class="hidden lg:inline" href="https://picsum.photos" tabindex="-1">https://picsum.photos</a>
         </section>
-        <section>
-            <p>또 다른 수십개의 라이브러리를 더 쓰고 있지만 여백이 모자라네요. 소스 코드의 <a href="https://github.com/hyuckkim/palette-png/blob/master/Cargo.toml">Cargo.toml</a>에서 확인해주세요.</p>
+        <section class="text-center">
+            <p>또 다른 수십개의 라이브러리를 더 쓰고 있지만 여백이 모자라네요. <br class="md:hidden"/> 소스 코드의 <a href="https://github.com/hyuckkim/palette-png/blob/master/Cargo.toml">Cargo.toml</a>에서 확인해주세요.</p>
         </section>
     </article>
     </footer>
