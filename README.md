@@ -7,11 +7,13 @@
 
 이미지를 팔레트화시키는 데 [ImageQuant 라이브러리](https://docs.rs/crate/imagequant)를 사용했습니다.  
 
+## Requires
+- typescript
+- [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
 ## How To Build
 ```
 git clone https://github.com/hyuckkim/Online-ModernArt-Maker --recurse-submodules
-cd Online-ModernArt-Maker
-cd palette-png
+cd Online-ModernArt-Maker/palette-png
 wasm-pack build --target web --out-dir ../pkg
 cd ..
 tsc
