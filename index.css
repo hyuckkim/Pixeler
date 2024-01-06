@@ -72,11 +72,12 @@ body, html {
     width: calc(100% - 100px);
     border: 2px solid#3f3f3f;
 }
-#ditheringslider {
+#ditheringslider, #gammaslider {
     width: calc(100% - 80px);
 }
-#ditheringtext {
+#ditheringtext, #gammatext {
     font-size: 14px;
+    width: 80px;
 }
 .menubutton {
     width: 100%;
