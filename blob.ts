@@ -11,25 +11,23 @@ class LoadPictureUI {
     static {
         this.input.onchange = this.loadImage;
         this.rorem.onclick = this.loadRorem;
-
     }
 
     static loadImage() {
         const self = LoadPictureUI;
         if (self.input.files instanceof FileList) {
             var file = self.input.files[0];
-            self.readFileAndCallback(file, self.readFile);
+            self.readFileAndCallback(file);
             newName = makeNewName(file.name);
         }
     }
-    static readFileAndCallback(file: File, callback: (this: FileReader, ev: ProgressEvent<FileReader>) => any) {
+    static readFileAndCallback(file: File) {
         var reader = new FileReader();
-        reader.addEventListener('load', callback);
-        reader.readAsArrayBuffer(file);
-    }
-    static async readFile(event: ProgressEvent<FileReader>) {
-        if (event.target instanceof FileReader && event.target.result instanceof ArrayBuffer) {
-            var result = event.target.result;
+        reader.onload = async (e) => {
+            if (!(e.target instanceof FileReader)) return;
+            var result = e.target.result;
+
+            if (!(result instanceof ArrayBuffer)) return;
     
             var blob = BlobTool.MakeBufferToBlob(result);
             BlobTool.url = createUrl(blob);
@@ -37,6 +35,7 @@ class LoadPictureUI {
             imageReady();
             colornizeIfPaletted(result);
         }
+        reader.readAsArrayBuffer(file);
     }
 
     static async loadRorem() {
@@ -46,14 +45,28 @@ class LoadPictureUI {
     }
     
     static async loadFile(width: number, height: number) {
-        var blob = await loadXHR(`https://picsum.photos/${width}/${height}`).then((response: any) => {
-            return response;
-        });
+        var blob = await this.loadXHR(`https://picsum.photos/${width}/${height}`);
+        if (!(blob instanceof Blob)) return;
+
         BlobTool.url = createUrl(blob);
         imageReady();
     }
     static hide() {
         LoadPictureUI.root.classList.add("hidden");
+    }
+    
+    static async loadXHR(lorem: string) {
+        return new Promise(function(resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", lorem);
+            xhr.responseType = "blob";
+            xhr.onerror = function() {reject("Network error.")};
+            xhr.onload = function() {
+                if (xhr.status === 200) {resolve(xhr.response)}
+                else {reject("Loading error:" + xhr.statusText)}
+            };
+            xhr.send();
+        });
     }
 }
 
@@ -311,19 +324,6 @@ function imageReady() {
     LoadPictureUI.hide();
     QuantizeUI.Show();
     CanvasLogic.StartDraw();
-}
-async function loadXHR(lorem: string) {
-    return new Promise(function(resolve, reject) {
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", lorem);
-        xhr.responseType = "blob";
-        xhr.onerror = function() {reject("Network error.")};
-        xhr.onload = function() {
-            if (xhr.status === 200) {resolve(xhr.response)}
-            else {reject("Loading error:" + xhr.statusText)}
-        };
-        xhr.send();
-    });
 }
 function createUrl(blob: Blob): string {
     var urlCreator = window.URL || window.webkitURL;
