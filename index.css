@@ -51,22 +51,22 @@ body, html {
 }
 
 @media screen and (min-width: 450px) {
-    #newmenu, #palettemenu {
+    #menu_quantize, #menu_palette {
         width: 400px;
     }
 }
-#newmenu, #palettemenu {
+#menu_quantize, #menu_palette {
     background-color: #dbe1e4;
 
     border: 2px solid#3f3f3f;
     z-index: 1;
     position: absolute;
 }
-#newmenu {
+#menu_quantize {
     top: 0px;
 }
-#palettemenu {
-    top: 80px;
+#menu_palette {
+    top: 100px;
 }
 #menuslider {
     width: calc(100% - 100px);
@@ -94,4 +94,9 @@ body, html {
     border: 2px solid#3f3f3f;
     border-radius: 8px;
     text-align: center;
+}
+
+#menu_loadpicture {
+    width: 100%;
+    height: 100%;
 }

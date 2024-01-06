@@ -3,21 +3,59 @@ rust.default();
 
 var newName = "palette.png";
 
-const inputElement = document.querySelector('body > div > input.file') as HTMLInputElement;
-const roremElement = document.querySelector('body > div > input.rorem') as HTMLInputElement;
+class LoadPictureUI {
+    private static root = document.querySelector('#menu_loadpicture') as HTMLDivElement;
+    private static input = document.querySelector('#menu_loadpicture > input.file') as HTMLInputElement;
+    private static rorem = document.querySelector('#menu_loadpicture > input.rorem') as HTMLInputElement;
 
-inputElement.addEventListener('change', function() {
-    if (inputElement.files instanceof FileList) {
-        var file = inputElement.files[0];
-        readFileAndCallback(file, readFile);
-        newName = makeNewName(file.name);
+    static {
+        this.input.onchange = this.loadImage;
+        this.rorem.onclick = this.loadRorem;
+
     }
-});
-roremElement.addEventListener('click', async function() {
-    roremElement.disabled = true;
-    await loadFile(600, 600);
-    roremElement.disabled = false;
-});
+
+    static loadImage() {
+        const self = LoadPictureUI;
+        if (self.input.files instanceof FileList) {
+            var file = self.input.files[0];
+            self.readFileAndCallback(file, self.readFile);
+            newName = makeNewName(file.name);
+        }
+    }
+    static readFileAndCallback(file: File, callback: (this: FileReader, ev: ProgressEvent<FileReader>) => any) {
+        var reader = new FileReader();
+        reader.addEventListener('load', callback);
+        reader.readAsArrayBuffer(file);
+    }
+    static async readFile(event: ProgressEvent<FileReader>) {
+        if (event.target instanceof FileReader && event.target.result instanceof ArrayBuffer) {
+            var result = event.target.result;
+    
+            var blob = BlobTool.MakeBufferToBlob(result);
+            BlobTool.url = createUrl(blob);
+    
+            imageReady();
+            colornizeIfPaletted(result);
+        }
+    }
+
+    static async loadRorem() {
+        LoadPictureUI.rorem.disabled = true;
+        await LoadPictureUI.loadFile(600, 600);
+        LoadPictureUI.rorem.disabled = false;
+    }
+    
+    static async loadFile(width: number, height: number) {
+        var blob = await loadXHR(`https://picsum.photos/${width}/${height}`).then((response: any) => {
+            return response;
+        });
+        BlobTool.url = createUrl(blob);
+        imageReady();
+    }
+    static hide() {
+        LoadPictureUI.root.style.display = "none";
+    }
+}
 
 (document.querySelector('#plusbutton') as HTMLInputElement).addEventListener('click', function() {
     QuantizeUI.ModifyRange(1);
@@ -29,10 +67,11 @@ roremElement.addEventListener('click', async function() {
 type rgbColor = {r: number, g: number, b:number};
 class QuantizeUI {
     private static Worker = new Worker('wasmworker.js', {type: 'module'});
-    private static div = document.querySelector('#newmenu') as HTMLDivElement;
-    private static submit = document.querySelector('#newmenu > .menubutton') as HTMLInputElement;
+    private static div = document.querySelector('#menu_quantize') as HTMLDivElement;
+    private static submit = document.querySelector('#menu_quantize > .menubutton') as HTMLInputElement;
     private static range = document.querySelector('#menuslider') as HTMLInputElement;
     private static dithering = document.querySelector('#ditheringslider') as HTMLInputElement;
+    private static gamma = document.querySelector('#gammaslider') as HTMLInputElement;
 
     public static isactivated = false;
     
@@ -50,7 +89,11 @@ class QuantizeUI {
         var colors = QuantizeUI.range.value;
         
         var data: ImageData = await makeCanvas(BlobTool.url);
-        QuantizeUI.Worker.postMessage([data, colors, Number.parseInt(QuantizeUI.dithering.value) / 100]);
+        QuantizeUI.Worker.postMessage([
+            data, 
+            colors, 
+            Number.parseInt(QuantizeUI.dithering.value) / 100,
+            Number.parseInt(QuantizeUI.gamma.value) / 100]);
         QuantizeUI.submit.disabled = true;
     }
     private static onGetPaletteImage(e: any) {
@@ -83,8 +126,8 @@ class QuantizeUI {
 
 class RecolorUI {
     static colors = new Array<HTMLInputElement>();
-    static div = document.querySelector('#palettemenu') as HTMLDivElement;
-    static button = document.querySelector('#palettemenu > .menubutton') as HTMLInputElement;
+    static div = document.querySelector('#menu_palette') as HTMLDivElement;
+    static button = document.querySelector('#menu_palette > .menubutton') as HTMLInputElement;
     public static isactivated = false;
 
     static {
@@ -180,9 +223,8 @@ class BlobTool {
 }
 
 class CanvasLogic {
-    public static canvas = document.querySelector('body > div > canvas') as HTMLCanvasElement;
+    public static canvas = document.querySelector('#pic') as HTMLCanvasElement;
     private static ctx: CanvasRenderingContext2D;
-    public static background = document.querySelector("body > div") as HTMLDivElement;
 
     private static dx = 0;
     private static dy = 0;
@@ -193,8 +235,8 @@ class CanvasLogic {
     }
     public static StartDraw() {
         this.canvas.style.display = "";
-        this.canvas.width = this.background.clientWidth;
-        this.canvas.height = this.background.clientHeight;
+        this.canvas.width = document.body.clientWidth;
+        this.canvas.height = document.body.clientHeight;
         setInterval(this.Draw, 34);
 
         this.canvas.addEventListener('mousedown', this.OnMouseDown);
@@ -208,7 +250,7 @@ class CanvasLogic {
     }
     private static Draw() {
         var self = CanvasLogic;
-        var width = self.background.clientWidth, height = self.background.clientHeight;
+        var width = document.body.clientWidth, height = document.body.clientHeight;
         self.canvas.width = width;
         self.canvas.height = height;
 
@@ -265,31 +307,10 @@ class CanvasLogic {
         CanvasLogic.clicked = false;
     }
 }
-function readFileAndCallback(file: File, callback: (this: FileReader, ev: ProgressEvent<FileReader>) => any) {
-    var reader = new FileReader();
-    reader.addEventListener('load', callback);
-    reader.readAsArrayBuffer(file);
-}
-async function readFile(event: ProgressEvent<FileReader>) {
-    if (event.target instanceof FileReader && event.target.result instanceof ArrayBuffer) {
-        var result = event.target.result;
-
-        var blob = BlobTool.MakeBufferToBlob(result);
-        BlobTool.url = createUrl(blob);
-
-        imageReady();
-        colornizeIfPaletted(result);
-    }
-}
-async function loadFile(width: number, height: number) {
-    var blob = await loadXHR(`https://picsum.photos/${width}/${height}`).then((response: any) => {
-        return response;
-    });
-    BlobTool.url = createUrl(blob);
-    imageReady();
-}
 function imageReady() {
     setUItoImage(BlobTool.url);
+
+    LoadPictureUI.hide();
     QuantizeUI.Show();
     CanvasLogic.StartDraw();
 }
@@ -312,8 +333,6 @@ function createUrl(blob: Blob): string {
     return imageUrl;
 }
 function setUItoImage(imageUrl: string) {
-    inputElement.style.display = "none";
-    roremElement.style.display = "none";
     BlobTool.qurl = imageUrl;
     BlobTool.UpdateImage();
 }
@@ -333,7 +352,6 @@ function splitColors(data: Uint8ClampedArray): Array<string>{
     }
     return array;
 }
-
 
 async function makeCanvas(blob: string): Promise<ImageData> {
     const img = document.createElement('img');
