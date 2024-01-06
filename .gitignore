@@ -1,2 +1,4 @@
-*.js
-/pkg/*
+blob.js
+wasmworker.js
+
+node_modules/

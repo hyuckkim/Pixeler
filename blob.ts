@@ -13,29 +13,38 @@ class LoadPictureUI {
         this.rorem.onclick = this.loadRorem;
     }
 
-    static loadImage() {
+    static async loadImage() {
         const self = LoadPictureUI;
         if (self.input.files instanceof FileList) {
             var file = self.input.files[0];
-            self.readFileAndCallback(file);
-            newName = makeNewName(file.name);
-        }
-    }
-    static readFileAndCallback(file: File) {
-        var reader = new FileReader();
-        reader.onload = async (e) => {
-            if (!(e.target instanceof FileReader)) return;
-            var result = e.target.result;
-
-            if (!(result instanceof ArrayBuffer)) return;
-    
-            var blob = BlobTool.MakeBufferToBlob(result);
+            var array = await self.loadBuffer(file);
+            var blob = BlobTool.MakeBufferToBlob(array);
             BlobTool.url = createUrl(blob);
     
             imageReady();
-            colornizeIfPaletted(result);
+            colornizeIfPaletted(array);
+            newName = makeNewName(file.name);
         }
-        reader.readAsArrayBuffer(file);
+    }
+    static async loadBuffer(file: File): Promise<ArrayBuffer> {
+        return new Promise(function(resolve, reject) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                if (!(e.target instanceof FileReader)) {
+                    reject("data type error");
+                    return;
+                }
+                var result = e.target.result;
+    
+                if (!(result instanceof ArrayBuffer)) {
+                    reject("data type error");
+                    return;
+                }
+                resolve(result);
+            }
+            reader.onerror = () => reject("network error");
+            reader.readAsArrayBuffer(file);
+        });
     }
 
     static async loadRorem() {
@@ -55,7 +64,7 @@ class LoadPictureUI {
         LoadPictureUI.root.classList.add("hidden");
     }
     
-    static async loadXHR(lorem: string) {
+    static async loadXHR(lorem: string): Promise<Blob> {
         return new Promise(function(resolve, reject) {
             var xhr = new XMLHttpRequest();
             xhr.open("GET", lorem);
