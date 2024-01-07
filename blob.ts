@@ -7,11 +7,11 @@ class LoadPictureUI {
     private static rorem = document.querySelector('#menu_loadpicture > #rorem') as HTMLInputElement;
 
     static {
-        this.input.onchange = this.loadImage;
-        this.rorem.onclick = this.loadRorem;
+        this.input.onchange = this.handleImage;
+        this.rorem.onclick = this.handleRorem;
     }
 
-    static async loadImage() {
+    static async handleImage() {
         const self = LoadPictureUI;
         if (self.input.files instanceof FileList) {
             var file = self.input.files[0];
@@ -21,7 +21,7 @@ class LoadPictureUI {
     
             imageReady();
             colornizeIfPaletted(array);
-            RecolorUI.naming.value = makeNewName(file.name);
+            RecolorUI.naming.value = `${file.name.split('.')[0]}.png`;
         }
     }
     static async loadBuffer(file: File): Promise<ArrayBuffer> {
@@ -45,10 +45,11 @@ class LoadPictureUI {
         });
     }
 
-    static async loadRorem() {
-        LoadPictureUI.rorem.disabled = true;
-        await LoadPictureUI.loadFile(600, 600);
-        LoadPictureUI.rorem.disabled = false;
+    static async handleRorem() {
+        const self = LoadPictureUI;
+        self.rorem.disabled = true;
+        await self.loadFile(600, 600);
+        self.rorem.disabled = false;
     }
     
     static async loadFile(width: number, height: number) {
@@ -86,7 +87,7 @@ class LoadPictureUI {
 
 type rgbColor = {r: number, g: number, b:number};
 class QuantizeUI {
-    private static Worker = new Worker('wasmworker.js', {type: 'module'});
+    private static worker = new Worker('wasmworker.js', {type: 'module'});
     private static div = document.querySelector('#menu_quantize') as HTMLDivElement;
     private static submit = document.querySelector('#menu_quantize > #menubutton') as HTMLInputElement;
     private static range = document.querySelector('#menuslider') as HTMLInputElement;
@@ -96,26 +97,35 @@ class QuantizeUI {
     public static isactivated = false;
     
     static {
-        this.range.onchange = this.rangeChanged;
-        this.submit.onclick = this.submitPressed;
-        this.Worker.onmessage = this.onGetPaletteImage;
+        this.range.onchange = this.handleRangeChanged;
+        this.submit.onclick = this.handleSubmitPressed;
+        this.worker.onmessage = this.handleWorkerFinished;
     }
 
-    private static rangeChanged() {
-        QuantizeUI.submit.value = QuantizeUI.range.value + "색 팔레트 만들기!";
+    private static handleRangeChanged() {
+        const self = QuantizeUI;
+        self.submit.value = `${self.range.value}색 팔레트 만들기!`;
     }
-    private static async submitPressed() {
-        var colors = QuantizeUI.range.value;
+    private static async handleSubmitPressed() {
+        const self = QuantizeUI;
+        self.startNewWork(
+            BlobTool.url,
+            self.range.value,
+            Number.parseInt(this.dithering.value) / 100,
+            Number.parseInt(this.gamma.value) / 100
+        );
         
-        var data: ImageData = await makeCanvas(BlobTool.url);
-        QuantizeUI.Worker.postMessage([
-            data, 
-            colors, 
-            Number.parseInt(QuantizeUI.dithering.value) / 100,
-            Number.parseInt(QuantizeUI.gamma.value) / 100]);
-        QuantizeUI.submit.disabled = true;
+        self.submit.disabled = true;
     }
-    private static onGetPaletteImage(e: any) {
+    static async startNewWork(url: string, colors: string, dithering: number, gamma: number) {
+        const data: ImageData = await makeCanvas(url);
+        this.worker.postMessage([
+            data, 
+            colors,
+            dithering,
+            gamma]);
+    }
+    private static handleWorkerFinished(e: MessageEvent<any>) {
         QuantizeUI.submit.disabled = false;
         var worked : Uint8ClampedArray = e.data;
         console.log(worked);
@@ -139,7 +149,7 @@ class QuantizeUI {
         if (res < Number.parseInt(this.range.min)) res = Number.parseInt(this.range.min);
 
         this.range.value = res.toString();
-        this.rangeChanged();
+        this.handleRangeChanged();
     }
 }
 
@@ -152,7 +162,7 @@ class RecolorUI {
     public static isactivated = false;
 
     static {
-        this.button.addEventListener("click", downloadPressed);
+        this.button.onclick = this.handleDownloadPressed;
     }
 
     private static addColor(color: string, id: number) {
@@ -197,6 +207,12 @@ class RecolorUI {
         if (blob instanceof Blob) {
             setUItoImage(createUrl(blob));
         }
+    }
+    static handleDownloadPressed() {
+        var a = document.createElement('a');
+        a.download = RecolorUI.naming.value;
+        a.href = BlobTool.qurl;
+        a.click();
     }
 }
 
@@ -376,13 +392,4 @@ function getRGB(color: string): rgbColor {
         g: Number.parseInt(`0x${color[3]}${color[4]}`),
         b: Number.parseInt(`0x${color[5]}${color[6]}`)
     };
-}
-function downloadPressed() {
-    var a = document.createElement('a');
-    a.download = RecolorUI.naming.value;
-    a.href = BlobTool.qurl;
-    a.click();
-}
-function makeNewName(oldName: string): string {
-    return `${oldName.split('.')[0]}.png`;
 }
