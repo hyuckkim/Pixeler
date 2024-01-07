@@ -111,8 +111,8 @@ class QuantizeUI {
         self.startNewWork(
             BlobTool.url,
             self.range.value,
-            Number.parseInt(this.dithering.value) / 100,
-            Number.parseInt(this.gamma.value) / 100
+            Number.parseInt(self.dithering.value) / 100,
+            Number.parseInt(self.gamma.value) / 100
         );
         
         self.submit.disabled = true;
