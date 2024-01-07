@@ -16,7 +16,12 @@
     </div>
     <div class="absolute top-0">
         <div class="bg-gray-200 border-2 border-gray-700 rounded-md mb-0.5 hidden" id="menu_quantize">
-            <input class="w-full text-center border-b-2 border-gray-700 enabled:hover:bg-gray-500 disabled:bg-gray-300" id="menubutton" aria-label="이미지를 몇 개의 색만을 가지도록 변환합니다. 이 작업은 몇 초 정도 걸립니다." type="button" value="4색 팔레트 만들기!">
+            <input 
+                class="w-full text-center border-b-2 border-gray-700 enabled:hover:bg-gray-500 disabled:bg-gray-300"
+                id="menubutton"
+                aria-label="이미지를 몇 개의 색만을 가지도록 변환합니다. 이 작업은 몇 초 정도 걸립니다." 
+                type="button"
+                value="4색 팔레트 만들기!">
             <div class="flex justify-between">
                 <input class="w-8 h-8 p-0 bg-gray-300 border-0 border-black hover:bg-gray-400" id="minusbutton" type="button" value="-" tabindex="-1">
                 <input class="w-full" id="menuslider" aria-label="이미지를 변환할 때 사용할 색 개수" type="range" min="2" value="4" max="256">
@@ -31,8 +36,19 @@
                 <input class="w-80" aria-label="감마" id="gammaslider" type="range" min="0" value="0" max="99">
             </div>
         </div>
-        <div class="bg-gray-200 border-2 border-gray-700 rounded-md hidden" id="menu_palette">
-            <input class="w-full text-center border-b-2 border-gray-700 enabled:hover:bg-gray-500 disabled:bg-gray-300" id="menubutton" type="button" value="다운로드" aria-label="파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.">
+        <div class="bg-gray-200 border-2 border-gray-700 rounded-md" id="menu_palette">
+            <div class="flex border-b-2 border-gray-700" id="download">
+                <button
+                    class="w-full text-center enabled:hover:bg-gray-500 disabled:bg-gray-300"
+                    id="button"
+                    aria-label="파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.">
+                    다운로드 : 
+                </button>
+                <input
+                    class="text-center text-sm italic rounded-md"
+                    id="name"
+                    value="palette.png">
+            </div>
             <div class="w-[400px]" id="palette"></div>
         </div>
     </div>

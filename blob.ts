@@ -1,8 +1,6 @@
 import * as rust from "./pkg/palette_png.js";
 rust.default();
 
-var newName = "palette.png";
-
 class LoadPictureUI {
     private static root = document.querySelector('#menu_loadpicture') as HTMLDivElement;
     private static input = document.querySelector('#menu_loadpicture > #file') as HTMLInputElement;
@@ -23,7 +21,7 @@ class LoadPictureUI {
     
             imageReady();
             colornizeIfPaletted(array);
-            newName = makeNewName(file.name);
+            RecolorUI.naming.value = makeNewName(file.name);
         }
     }
     static async loadBuffer(file: File): Promise<ArrayBuffer> {
@@ -149,7 +147,8 @@ class RecolorUI {
     static colors = new Array<HTMLInputElement>();
     static root = document.querySelector('#menu_palette') as HTMLDivElement;
     static div = document.querySelector('#menu_palette > #palette') as HTMLDivElement;
-    static button = document.querySelector('#menu_palette > #menubutton') as HTMLInputElement;
+    static button = document.querySelector('#menu_palette > #download > #button') as HTMLButtonElement;
+    static naming = document.querySelector('#menu_palette > #download > #name') as HTMLInputElement;
     public static isactivated = false;
 
     static {
@@ -380,7 +379,7 @@ function getRGB(color: string): rgbColor {
 }
 function downloadPressed() {
     var a = document.createElement('a');
-    a.download = newName;
+    a.download = RecolorUI.naming.value;
     a.href = BlobTool.qurl;
     a.click();
 }
