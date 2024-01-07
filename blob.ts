@@ -14,9 +14,9 @@ class LoadPictureUI {
     static async handleImage() {
         const self = LoadPictureUI;
         if (self.input.files instanceof FileList) {
-            var file = self.input.files[0];
-            var array = await self.loadBuffer(file);
-            var blob = BlobTool.MakeBufferToBlob(array);
+            const file = self.input.files[0];
+            const array = await self.loadBuffer(file);
+            const blob = BlobTool.MakeBufferToBlob(array);
             BlobTool.url = createUrl(blob);
     
             imageReady();
@@ -32,7 +32,7 @@ class LoadPictureUI {
                     reject("data type error");
                     return;
                 }
-                var result = e.target.result;
+                const result = e.target.result;
     
                 if (!(result instanceof ArrayBuffer)) {
                     reject("data type error");
@@ -53,7 +53,7 @@ class LoadPictureUI {
     }
     
     static async loadFile(width: number, height: number) {
-        var blob = await this.loadXHR(`https://picsum.photos/${width}/${height}`);
+        const blob = await this.loadXHR(`https://picsum.photos/${width}/${height}`);
         if (!(blob instanceof Blob)) return;
 
         BlobTool.url = createUrl(blob);
@@ -65,7 +65,7 @@ class LoadPictureUI {
     
     static async loadXHR(lorem: string): Promise<Blob> {
         return new Promise(function(resolve, reject) {
-            var xhr = new XMLHttpRequest();
+            const xhr = new XMLHttpRequest();
             xhr.open("GET", lorem);
             xhr.responseType = "blob";
             xhr.onerror = function() {reject("Network error.")};
@@ -127,10 +127,11 @@ class QuantizeUI {
     }
     private static handleWorkerFinished(e: MessageEvent<any>) {
         QuantizeUI.submit.disabled = false;
-        var worked : Uint8ClampedArray = e.data;
+        const worked: Uint8ClampedArray = e.data;
         console.log(worked);
-        var pixelized = BlobTool.MakeBufferToBlob(worked.buffer);
-        var pixelcolors = splitColors(rust.read_palette(new Uint8ClampedArray(worked)));
+
+        const pixelized = BlobTool.MakeBufferToBlob(worked.buffer);
+        const pixelcolors = splitColors(rust.read_palette(new Uint8ClampedArray(worked)));
     
         RecolorUI.SetColors(pixelcolors);
         if (!RecolorUI.isactivated) {
@@ -144,7 +145,7 @@ class QuantizeUI {
         QuantizeUI.isactivated = true;
     }
     public static ModifyRange(i: number) {
-        var res = i + Number.parseInt(this.range.value);
+        let res = i + Number.parseInt(this.range.value);
         if (res > Number.parseInt(this.range.max)) res = Number.parseInt(this.range.max);
         if (res < Number.parseInt(this.range.min)) res = Number.parseInt(this.range.min);
 
@@ -166,7 +167,7 @@ class RecolorUI {
     }
 
     private static addColor(color: string, id: number) {
-        var newcover = document.createElement('input');
+        const newcover = document.createElement('input');
         newcover.type = 'color';
         newcover.value = `#${color}`;
         newcover.id = id.toString();
@@ -176,7 +177,7 @@ class RecolorUI {
         this.colors.push(newcover);
     }
     public static SetColors(colors: Array<string>) {
-        for (var i = 0; i < colors.length; i++) {
+        for (let i = 0; i < colors.length; i++) {
             if (this.colors.length <= i) {
                 this.addColor(colors[i], i);
             } else {
@@ -184,7 +185,7 @@ class RecolorUI {
             }
         }
         while (colors.length < this.colors.length) {
-            var moved = this.colors.pop();
+            const moved = this.colors.pop();
             if (moved instanceof HTMLInputElement) {
                 moved.remove();
             }
@@ -201,15 +202,15 @@ class RecolorUI {
         this.isactivated = true;
     }
     private static async colorchanged(this: HTMLInputElement) {
-        var no = Number.parseInt(this.id);
-        var color = getRGB(RecolorUI.colors[no].value);
-        var blob = await BlobTool.ChangePalette(no, color);
+        const no = Number.parseInt(this.id);
+        const color = getRGB(RecolorUI.colors[no].value);
+        const blob = await BlobTool.ChangePalette(no, color);
         if (blob instanceof Blob) {
             setUItoImage(createUrl(blob));
         }
     }
     static handleDownloadPressed() {
-        var a = document.createElement('a');
+        const a = document.createElement('a');
         a.download = RecolorUI.naming.value;
         a.href = BlobTool.qurl;
         a.click();
@@ -224,14 +225,15 @@ class BlobTool {
 
     public static async ChangePalette(id: number, color: rgbColor): Promise<Blob | undefined> {
         if (!(BlobTool.data instanceof Blob)) return undefined;
-        var data = new Uint8ClampedArray(await BlobTool.data.arrayBuffer());
-        var newdata = rust.change_palette(data, id, color.r, color.g, color.b);
+        const buffer = await BlobTool.data.arrayBuffer();
+        const data = new Uint8ClampedArray(buffer);
+        const newdata = rust.change_palette(data, id, color.r, color.g, color.b);
 
         BlobTool.data = BlobTool.MakeBufferToBlob(newdata);
         return BlobTool.data;
     }
     public static MakeBufferToBlob(data: ArrayBuffer): Blob {
-        var blob = new Blob([data], {type:'image/*'});
+        const blob = new Blob([data], {type:'image/*'});
         BlobTool.data = blob;
         return blob;
     }
@@ -284,8 +286,8 @@ class CanvasLogic {
         this.canvas.addEventListener('touechend', this.OnHandUp);
     }
     private static Draw() {
-        var self = CanvasLogic;
-        var width = document.body.clientWidth, height = document.body.clientHeight;
+        const self = CanvasLogic;
+        const width = document.body.clientWidth, height = document.body.clientHeight;
         self.canvas.width = width;
         self.canvas.height = height;
 
@@ -294,7 +296,7 @@ class CanvasLogic {
         self.ctx.rect(0, 0, width, height);
 
         self.ctx.fill();
-        var img = BlobTool.GetImage();
+        const img = BlobTool.GetImage();
         if (img instanceof HTMLImageElement) {
             self.ctx.drawImage(img, (width - img.width) / 2 + self.dx, (height - img.height) / 2 + self.dy);
         }
@@ -350,8 +352,8 @@ function imageReady() {
     CanvasLogic.StartDraw();
 }
 function createUrl(blob: Blob): string {
-    var urlCreator = window.URL || window.webkitURL;
-    var imageUrl = urlCreator.createObjectURL(blob);
+    const urlCreator = window.URL || window.webkitURL;
+    const imageUrl = urlCreator.createObjectURL(blob);
     return imageUrl;
 }
 function setUItoImage(imageUrl: string) {
@@ -359,20 +361,18 @@ function setUItoImage(imageUrl: string) {
     BlobTool.UpdateImage();
 }
 function colornizeIfPaletted(data: ArrayBuffer) {
-    var colors = rust.read_palette(new Uint8ClampedArray(data));
+    const colors = rust.read_palette(new Uint8ClampedArray(data));
     if (colors.length != 0) {
         RecolorUI.SetColors(splitColors(colors));
         RecolorUI.Show();
     }
 }
 
-function splitColors(data: Uint8ClampedArray): Array<string>{
-    var array = [];
-    for (var i = 0; i < data.length / 3; i++) {
-        var r = data[i * 3], g = data[i * 3 + 1], b = data[i * 3 + 2];
-        array.push(((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1));
-    }
-    return array;
+function splitColors(data: Uint8ClampedArray): Array<string> {
+    return Array.from({ length: data.length / 3 }, (_, i) => {
+        const r = data[i * 3], g = data[i * 3 + 1], b = data[i * 3 + 2];
+        return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    });
 }
 
 async function makeCanvas(blob: string): Promise<ImageData> {
