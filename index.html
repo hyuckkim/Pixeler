@@ -14,42 +14,49 @@
         <input class="h-[90%] w-full bg-gray-300" id="file" type="file" name="fileupload" accept="image/*" aria-label="스페이스 바를 눌러 꾸미기 위해 사용할 사진을 선택할 수 있습니다." autofocus/>
         <input class="h-[10%] w-full bg-gray-100 enabled:hover:bg-gray-400 disabled:bg-gray-500" id="rorem" type="button" value="...또는 적당한 이미지 사용하기" />
     </div>
-    <div class="absolute top-0">
-        <div class="hidden bg-gray-200 border-2 border-gray-700 rounded-md mb-0.5" id="menu_quantize">
-            <input 
-                class="w-full text-center border-b-2 border-gray-700 enabled:hover:bg-gray-500 disabled:bg-gray-300"
-                id="menubutton"
-                aria-label="이미지를 몇 개의 색만을 가지도록 변환합니다. 이 작업은 몇 초 정도 걸립니다." 
-                type="button"
-                value="4색 팔레트 만들기!">
-            <div class="flex justify-between">
+    <div class="absolute top-0 min-w-[404px]">
+        <div class="hidden group bg-gray-200 border-2 border-gray-700 rounded-md mb-0.5" id="menu_quantize">
+            <div class="_top flex w-full rounded-t-md border-b-2 group-[.minimized]:border-b-0 bg-gray-200 border-gray-700">
+                <button class="_minimize rounded-full bg-gray-400 w-5 h-5 m-0.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="group-[.minimized]:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up"><path d="m18 15-6-6-6 6"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="hidden group-[.minimized]:block" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <input 
+                    class="_do w-full text-center enabled:hover:bg-gray-500 disabled:bg-gray-300"
+                    aria-label="이미지를 몇 개의 색만을 가지도록 변환합니다. 이 작업은 몇 초 정도 걸립니다." 
+                    type="button"
+                    value="4색 팔레트 만들기!">
+            </div>
+            <div class="flex justify-between group-[.minimized]:hidden">
                 <input class="w-8 h-8 p-0 bg-gray-300 border-0 border-black hover:bg-gray-400" id="minusbutton" type="button" value="-" tabindex="-1">
                 <input class="w-full" id="menuslider" aria-label="이미지를 변환할 때 사용할 색 개수" type="range" min="2" value="4" max="256">
                 <input class="w-8 h-8 o-0 bg-gray-300 border-0 border-black hover:bg-gray-400" id="plusbutton" type="button" value="+" tabindex="-1">
             </div>
-            <div class="flex justify-between">
+            <div class="flex justify-between group-[.minimized]:hidden">
                 <div class="w-16" id="ditheringtext">디더링 : </div>
                 <input class="w-80" aria-label="디더링" id="ditheringslider" type="range" min="0" value="100" max="100"> <br/>
             </div>
-            <div class="flex justify-between">
+            <div class="flex justify-between group-[.minimized]:hidden">
                 <div class="w-16" id="gammatext">감마 : </div>
                 <input class="w-80" aria-label="감마" id="gammaslider" type="range" min="0" value="0" max="99">
             </div>
         </div>
-        <div class="hidden bg-gray-200 border-2 border-gray-700 rounded-md" id="menu_palette">
-            <div class="flex border-b-2 border-gray-700" id="download">
+        <div class="hidden group bg-gray-200 border-2 border-gray-700 rounded-md" id="menu_palette">
+            <div class="_top flex border-b-2 border-gray-700 group-[.minimized]:border-b-0">
+                <button class="_minimize rounded-full bg-gray-400 w-5 h-5 m-0.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="group-[.minimized]:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up"><path d="m18 15-6-6-6 6"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="hidden group-[.minimized]:block" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
                 <button
-                    class="w-full text-center enabled:hover:bg-gray-500 disabled:bg-gray-300"
-                    id="button"
+                    class="_do w-full text-center enabled:hover:bg-gray-500 disabled:bg-gray-300"
                     aria-label="파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.">
                     다운로드 : 
                 </button>
                 <input
-                    class="text-center text-sm italic rounded-md"
-                    id="name"
+                    class="_name text-center text-sm italic rounded-md"
                     value="palette.png">
             </div>
-            <div class="w-[400px]" id="palette"></div>
+            <div class="w-[400px] group-[.minimized]:hidden" id="palette"></div>
         </div>
     </div>
     

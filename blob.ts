@@ -88,11 +88,12 @@ class LoadPictureUI {
 type rgbColor = {r: number, g: number, b:number};
 class QuantizeUI {
     private static worker = new Worker('wasmworker.js', {type: 'module'});
-    private static div = document.querySelector('#menu_quantize') as HTMLDivElement;
-    private static submit = document.querySelector('#menu_quantize > #menubutton') as HTMLInputElement;
+    private static root = document.querySelector('#menu_quantize') as HTMLDivElement;
+    private static submit = document.querySelector('#menu_quantize > ._top > ._do') as HTMLInputElement;
     private static range = document.querySelector('#menuslider') as HTMLInputElement;
     private static dithering = document.querySelector('#ditheringslider') as HTMLInputElement;
     private static gamma = document.querySelector('#gammaslider') as HTMLInputElement;
+    private static minimize = document.querySelector('#menu_quantize > ._top > ._minimize') as HTMLButtonElement;
 
     public static isactivated = false;
     
@@ -100,6 +101,7 @@ class QuantizeUI {
         this.range.onchange = this.handleRangeChanged;
         this.submit.onclick = this.handleSubmitPressed;
         this.worker.onmessage = this.handleWorkerFinished;
+        this.minimize.onclick = this.handleMinimize;
     }
 
     private static handleRangeChanged() {
@@ -140,8 +142,11 @@ class QuantizeUI {
         setUItoImage(createUrl(pixelized));
         BlobTool.UpdateImage();
     }
+    private static handleMinimize() {
+        QuantizeUI.root.classList.toggle("minimized")
+    }
     public static Show() {
-        QuantizeUI.div.classList.remove("hidden");
+        QuantizeUI.root.classList.remove("hidden");
         QuantizeUI.isactivated = true;
     }
     public static ModifyRange(i: number) {
@@ -158,12 +163,18 @@ class RecolorUI {
     static colors = new Array<HTMLInputElement>();
     static root = document.querySelector('#menu_palette') as HTMLDivElement;
     static div = document.querySelector('#menu_palette > #palette') as HTMLDivElement;
-    static button = document.querySelector('#menu_palette > #download > #button') as HTMLButtonElement;
-    static naming = document.querySelector('#menu_palette > #download > #name') as HTMLInputElement;
+    static button = document.querySelector('#menu_palette > ._top > ._do') as HTMLButtonElement;
+    static naming = document.querySelector('#menu_palette > ._top > ._name') as HTMLInputElement;
+    static minimize = document.querySelector('#menu_palette > ._top > ._minimize') as HTMLButtonElement;
+
     public static isactivated = false;
 
     static {
         this.button.onclick = this.handleDownloadPressed;
+        this.minimize.onclick = this.handleMinimize;
+    }
+    private static handleMinimize() {
+        RecolorUI.root.classList.toggle("minimized")
     }
 
     private static addColor(color: string, id: number) {
