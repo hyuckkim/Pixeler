@@ -1,7 +1,6 @@
 import { PanelUI } from "./panelUI.js";
 
 import { BlobTool } from "./BlobTool.js";
-import { splitColors } from "./blob.js";
 
 import * as rust from "./pkg/palette_png.js";
 rust.default();
@@ -12,9 +11,9 @@ export class QuantizeUI extends PanelUI {
   private gamma: HTMLInputElement;
 
   private worker: Worker;
-  private onQuantized: (blob: Blob, colors: string[]) => void;
+  private onQuantized: (blob: Blob, colors: Uint8ClampedArray) => void;
 
-  constructor(root: HTMLDivElement, onQuantized: (blob: Blob, colors: string[]) => void) {
+  constructor(root: HTMLDivElement, onQuantized: (blob: Blob, colors: Uint8ClampedArray) => void) {
     super(root);
 
     const menuSlider = this.root.querySelector("#menuslider");
@@ -64,11 +63,10 @@ export class QuantizeUI extends PanelUI {
 
     
     const pixelized = BlobTool.MakeBufferToBlob(worked.buffer);
-    const pixelcolors = splitColors(rust.read_palette(
+
+    this.onQuantized(pixelized, rust.read_palette(
       new Uint8ClampedArray(worked)
     ));
-
-    this.onQuantized(pixelized, pixelcolors);
   }
   
   private async makeCanvas(blob: string): Promise<ImageData> {

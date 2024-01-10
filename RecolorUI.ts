@@ -27,21 +27,32 @@ export class RecolorUI extends PanelUI {
     this.colors = [];
   }
 
-  public SetColors(colors: string[]) {
-    for (let i = 0; i < colors.length; i++) {
+  public SetColors(colors: Uint8ClampedArray) {
+    const splitted = this.splitColors(colors);
+    
+    for (let i = 0; i < splitted.length; i++) {
       if (this.colors.length <= i) {
-          this.addColor(colors[i], i);
+          this.addColor(splitted[i], i);
       } else {
-          this.colors[i].value = `#${colors[i]}`;
+          this.colors[i].value = `#${splitted[i]}`;
       }
     }
-    while (colors.length < this.colors.length) {
+  
+    while (splitted.length < this.colors.length) {
       const moved = this.colors.pop();
       if (moved instanceof HTMLInputElement) {
           moved.remove();
       }
     }
   }
+  
+  private splitColors(data: Uint8ClampedArray) : string[] {
+    return Array.from({ length: data.length / 3 }, (_, i) => {
+      const r = data[i * 3], g = data[i * 3 + 1], b = data[i * 3 + 2];
+      return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    });
+  }
+
   private addColor(color: string, id: number) {
       const newcover = document.createElement('input');
       newcover.type = 'color';
