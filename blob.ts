@@ -7,8 +7,8 @@ import { ResizeUI } from "./ResizeUI.js";
 import * as rust from "./pkg/palette_png.js";
 rust.default();
 
-const canvasUIElement = document.querySelector("#pic");
-const canvasUI = canvasUIElement instanceof HTMLCanvasElement
+const canvasUIElement = document.querySelector("#menu_canvas");
+const canvasUI = canvasUIElement instanceof HTMLDivElement
     ? new CanvasUI(canvasUIElement)
     : undefined;
 
