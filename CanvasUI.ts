@@ -27,11 +27,18 @@ export class CanvasUI extends UI {
     this.ctx = context;
   }
 
-  public Show(): void {
+  public async Show(): Promise<void> {
     super.Show();
 
     this.canvas.width = document.body.clientWidth;
     this.canvas.height = document.body.clientHeight;
+
+    const img = await BlobTool.GetImage();
+    if (img instanceof HTMLImageElement) {
+      this.dx = this.canvas.width / 2 - img.width / 2;
+      this.dy = this.canvas.height / 2 - img.height / 2;
+    }
+
     requestAnimationFrame(() => { this.Draw() });
 
     this.canvas.onmousedown = (e) => { this.OnMouseDown(e) };
