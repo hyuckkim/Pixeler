@@ -38,7 +38,6 @@ export class BlobTool {
           this.image.src = this.qurl;
 
           await this.WaitImage(this.image);
-          console.log("!!!");
           return this.image;
       }
       if (this.url != "") {
