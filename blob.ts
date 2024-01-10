@@ -1,6 +1,5 @@
 import { BlobTool } from "./BlobTool.js";
 import { QuantizeUI } from "./QuantizeUI.js";
-import { PanelUI } from "./panelUI.js";
 import * as rust from "./pkg/palette_png.js";
 rust.default();
 
