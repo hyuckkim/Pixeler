@@ -28,7 +28,7 @@ export class CanvasUI extends UI {
 
     this.canvas.width = document.body.clientWidth;
     this.canvas.height = document.body.clientHeight;
-    setInterval(() => { this.Draw() }, 34);
+    requestAnimationFrame(() => { this.Draw() });
 
     this.canvas.onmousedown = (e) => { this.OnMouseDown(e) };
     this.canvas.onmousemove = (e) => { this.OnMouseMove(e) };
@@ -53,6 +53,7 @@ export class CanvasUI extends UI {
     if (img instanceof HTMLImageElement) {
       this.ctx.drawImage(img, (width - img.width) / 2 + this.dx, (height - img.height) / 2 + this.dy);
     }
+    requestAnimationFrame(() => { this.Draw() });
   }
   private mouseX = 0;
   private mouseY = 0;
