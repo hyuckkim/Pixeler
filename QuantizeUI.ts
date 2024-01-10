@@ -3,6 +3,7 @@ import { PanelUI } from "./panelUI.js";
 import { BlobTool } from "./BlobTool.js";
 
 import * as rust from "./pkg/palette_png.js";
+import { position } from "./blob.js";
 rust.default();
 
 export class QuantizeUI extends PanelUI {
@@ -48,7 +49,7 @@ export class QuantizeUI extends PanelUI {
   }
 
   async doMain(): Promise<void> {
-    const data = await this.makeCanvas(BlobTool.url);
+    const data = await this.makeCanvas(BlobTool.url, position());
     this.worker.postMessage([
       data,
       this.range.value,
@@ -69,7 +70,7 @@ export class QuantizeUI extends PanelUI {
     ));
   }
   
-  private async makeCanvas(blob: string): Promise<ImageData> {
+  private async makeCanvas(blob: string, pos: {x: number, y: number, w: number, h: number}): Promise<ImageData> {
     const img = document.createElement('img');
     img.src = blob;
     await new Promise((resolve) => (img.onload = resolve));
@@ -79,9 +80,9 @@ export class QuantizeUI extends PanelUI {
     canvas.height = img.height;
 
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-    ctx.drawImage(img, 0, 0);
+    ctx.drawImage(img, -pos.x, -pos.y);
     
-    return ctx.getImageData(0, 0, img.width, img.height);
+    return ctx.getImageData(0, 0, pos.w, pos.h);
   }
   private handleRangeChanged() {
     this.do.value = `${this.range.value}색 팔레트 만들기!`;

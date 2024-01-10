@@ -5,6 +5,10 @@ import { BlobTool } from "./BlobTool.js";
 export class CanvasUI extends UI {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private strokeRects: (
+      {x: number, y: number, w: number, h: number} | 
+      (() => {x: number, y: number, w: number, h: number}))[] 
+    = [];
 
   private dx = 0;
   private dy = 0;
@@ -39,7 +43,7 @@ export class CanvasUI extends UI {
     this.canvas.ontouchmove = (e) => { this.OnHandMove(e) };
     this.canvas.ontouchend = () => { this.OnHandUp() };
   }
-  private Draw() {
+  private async Draw() {
     const width = document.body.clientWidth, height = document.body.clientHeight;
     this.canvas.width = width;
     this.canvas.height = height;
@@ -49,10 +53,22 @@ export class CanvasUI extends UI {
     this.ctx.rect(0, 0, width, height);
 
     this.ctx.fill();
-    const img = BlobTool.GetImage();
+    const img = await BlobTool.GetImage();
     if (img instanceof HTMLImageElement) {
-      this.ctx.drawImage(img, (width - img.width) / 2 + this.dx, (height - img.height) / 2 + this.dy);
+      this.ctx.drawImage(img, this.dx, this.dy);
     }
+
+    this.strokeRects.forEach(v => {
+      this.ctx.strokeStyle = "red";
+      if (typeof v === "function") {
+        const b = v();
+        this.ctx.strokeRect(b.x + this.dx, b.y + this.dy, b.w, b.h);
+      }
+      else {
+        this.ctx.strokeRect(v.x + this.dx, v.y + this.dy, v.w, v.h);
+      }
+    });
+
     requestAnimationFrame(() => { this.Draw() });
   }
   private mouseX = 0;
@@ -96,4 +112,16 @@ export class CanvasUI extends UI {
   private OnHandUp() {
       this.isPressed = false;
   }
+
+  public AddStrokeRect(stroke: (
+    {x: number, y: number, w: number, h: number} | 
+    (() => {x: number, y: number, w: number, h: number}))) {
+      this.strokeRects.push(stroke);
+  }
+  public RemoveStrokeRect(stroke: (
+    {x: number, y: number, w: number, h: number} | 
+    (() => {x: number, y: number, w: number, h: number}))) {
+      if (this.strokeRects.includes(stroke))
+        this.strokeRects.splice(this.strokeRects.indexOf(stroke));
+    }
 }

@@ -15,7 +15,28 @@
         <input class="h-[10%] w-full bg-gray-100 enabled:hover:bg-gray-400 disabled:bg-gray-500" id="rorem" type="button" value="...또는 적당한 이미지 사용하기" />
     </div>
     <div class="absolute top-0 min-w-[404px]">
-        <div class="hidden group bg-gray-200 border-2 border-gray-700 rounded-md mb-0.5" id="menu_quantize">
+        <div id="menu_resize" class="hidden group bg-gray-200 border-2 border-gray-700 rounded-md mb-0.5">
+            <div class="_top flex border-b-2 border-gray-700 group-[.minimized]:border-b-0">
+                <button class="_minimize rounded-full bg-gray-400 w-5 h-5 m-0.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="group-[.minimized]:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up"><path d="m18 15-6-6-6 6"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="hidden group-[.minimized]:block" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <input
+                    type="button" value="자르기"
+                    class="_do w-full text-center disabled:bg-gray-300">
+                    
+                <input class="_width w-10 text-sm italic rounded-md" value="1920">
+                <span> x </span>
+                <input class="_height w-10 text-sm italic rounded-md" value="1080">
+            </div>
+            <div class="_main flex justify-between group-[.minimized]:hidden bg-gray-300 rounded-md">
+                <span class="text-center w-full">오프셋: </span>
+                <input type="text" class="_x w-10 italic rounded-md" value="0">
+                <div class="span">,</div>
+                <input type="text" class="_y w-10 italic rounded-md" value="0">
+            </div>
+        </div>
+        <div id="menu_quantize" class="hidden group bg-gray-200 border-2 border-gray-700 rounded-md mb-0.5">
             <div class="_top flex w-full rounded-md border-b-2 group-[.minimized]:border-b-0 bg-gray-200 border-gray-700">
                 <button class="_minimize rounded-full bg-gray-400 w-5 h-5 m-0.5">
                     <svg xmlns="http://www.w3.org/2000/svg" class="group-[.minimized]:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up"><path d="m18 15-6-6-6 6"/></svg>
@@ -41,7 +62,7 @@
                 <input class="w-80" aria-label="감마" id="gammaslider" type="range" min="0" value="0" max="99">
             </div>
         </div>
-        <div class="hidden group bg-gray-200 border-2 border-gray-700 rounded-md" id="menu_palette">
+        <div id="menu_palette" class="hidden group bg-gray-200 border-2 border-gray-700 rounded-md">
             <div class="_top flex border-b-2 border-gray-700 group-[.minimized]:border-b-0">
                 <button class="_minimize rounded-full bg-gray-400 w-5 h-5 m-0.5">
                     <svg xmlns="http://www.w3.org/2000/svg" class="group-[.minimized]:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up"><path d="m18 15-6-6-6 6"/></svg>

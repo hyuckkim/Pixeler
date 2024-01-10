@@ -23,31 +23,42 @@ export class BlobTool {
       BlobTool.data = blob;
       return blob;
   }
-  public static GetImage(): HTMLImageElement | undefined {
+  public static async GetImage(): Promise<HTMLImageElement | undefined> {
       if (this.image instanceof HTMLImageElement) return this.image;
-      else this.UpdateImage();
+      else await this.UpdateImage();
 
       return this.image;
   }
-  public static UpdateImage() {
+  public static async UpdateImage() {
       if (this.data instanceof Blob) {
           this.qurl = this.createUrl(this.data);
       }
       if (this.qurl != "") {
           this.image = new Image();
           this.image.src = this.qurl;
+
+          await this.WaitImage(this.image);
+          console.log("!!!");
           return this.image;
       }
       if (this.url != "") {
           this.image = new Image();
           this.image.src = this.url;
+
+          await this.WaitImage(this.image);
           return this.image;
       }
   }
+  public static async WaitImage(image: HTMLImageElement) {
+    return new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onabort = reject;
+    });
+  }
 
-  public static setUItoImage(imageUrl: string) {
+  public static async setUItoImage(imageUrl: string) {
     this.qurl = imageUrl;
-    this.UpdateImage();
+    await this.UpdateImage();
   }
 
   public static createUrl(blob: Blob): string {
