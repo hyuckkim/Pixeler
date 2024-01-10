@@ -1,5 +1,5 @@
 export class UI {
-  protected root: HTMLDivElement;
+  protected root: HTMLElement;
   public Show(): void {
     this.root.classList.remove("hidden");
   }
@@ -7,7 +7,7 @@ export class UI {
     this.root.classList.add("hidden");
   }
 
-  constructor(root: HTMLDivElement) {
+  constructor(root: HTMLElement) {
     this.root = root;
   }
 }
@@ -16,7 +16,7 @@ export abstract class PanelUI extends UI {
   private minimize: HTMLButtonElement;
   protected do: HTMLInputElement;
 
-  constructor(root: HTMLDivElement) {
+  constructor(root: HTMLElement) {
     super(root);
     this.root = root;
 

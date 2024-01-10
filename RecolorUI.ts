@@ -8,7 +8,7 @@ export class RecolorUI extends PanelUI {
 
   private naming: HTMLInputElement;
 
-  constructor(root: HTMLDivElement, name: string) {
+  constructor(root: HTMLElement, name: string) {
     super(root);
 
     const paletteDiv = this.root.querySelector("#palette");
