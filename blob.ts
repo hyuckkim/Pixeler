@@ -206,15 +206,3 @@ export function splitColors(data: Uint8ClampedArray): Array<string> {
         return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
     });
 }
-
-async function makeCanvas(blob: string): Promise<ImageData> {
-    const img = document.createElement('img');
-    img.src = blob;
-    await new Promise((resolve) => (img.onload = resolve));
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-    ctx.drawImage(img, 0, 0);
-    return ctx.getImageData(0, 0, img.width, img.height);
-}
