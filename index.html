@@ -47,14 +47,12 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="group-[.minimized]:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up"><path d="m18 15-6-6-6 6"/></svg>
                     <svg xmlns="http://www.w3.org/2000/svg" class="hidden group-[.minimized]:block" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
                 </button>
-                <button
-                    class="_do w-full text-center enabled:hover:bg-gray-500 disabled:bg-gray-300"
-                    aria-label="파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.">
-                    다운로드 : 
-                </button>
                 <input
-                    class="_name text-center text-sm italic rounded-md"
-                    value="palette.png">
+                    class="_do w-full text-center enabled:hover:bg-gray-500 disabled:bg-gray-300"
+                    type="button"
+                    value="다운로드 : ">
+                <input
+                    class="_name text-center text-sm italic rounded-md">
             </div>
             <div class="w-[400px] group-[.minimized]:hidden" id="palette"></div>
         </div>

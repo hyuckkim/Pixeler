@@ -1,18 +1,24 @@
 import { BlobTool } from "./BlobTool.js";
 import { QuantizeUI } from "./QuantizeUI.js";
+import { RecolorUI } from "./RecolorUI.js";
 import * as rust from "./pkg/palette_png.js";
 rust.default();
 
 const quantizeUIDiv = document.querySelector("#menu_quantize");
 let quantizeUI = quantizeUIDiv instanceof HTMLDivElement
     ? new QuantizeUI(quantizeUIDiv, (blob, colors) => {
-        RecolorUI.SetColors(colors);
-        if (!RecolorUI.isactivated) {
-            RecolorUI.Show();
+        if (recolorUI !== undefined) {
+            recolorUI.SetColors(colors);
+            recolorUI.Show();
         }
         BlobTool.setUItoImage(BlobTool.createUrl(blob));
         BlobTool.UpdateImage();
     })
+    : undefined;
+
+const RecolorUIDiv = document.querySelector("#menu_palette");
+let recolorUI = RecolorUIDiv instanceof HTMLDivElement
+    ? new RecolorUI(RecolorUIDiv, "palette.png")
     : undefined;
 
 class LoadPictureUI {
@@ -35,7 +41,9 @@ class LoadPictureUI {
     
             imageReady();
             colornizeIfPaletted(array);
-            RecolorUI.naming.value = `${file.name.split('.')[0]}.png`;
+            if (recolorUI !== undefined) {
+                recolorUI.SetName(`${file.name.split('.')[0]}.png`);
+            }
         }
     }
     static async loadBuffer(file: File): Promise<ArrayBuffer> {
@@ -91,76 +99,6 @@ class LoadPictureUI {
         });
     }
 }
-
-class RecolorUI {
-    static colors = new Array<HTMLInputElement>();
-    static root = document.querySelector('#menu_palette') as HTMLDivElement;
-    static div = document.querySelector('#menu_palette > #palette') as HTMLDivElement;
-    static button = document.querySelector('#menu_palette > ._top > ._do') as HTMLButtonElement;
-    static naming = document.querySelector('#menu_palette > ._top > ._name') as HTMLInputElement;
-    static minimize = document.querySelector('#menu_palette > ._top > ._minimize') as HTMLButtonElement;
-
-    public static isactivated = false;
-
-    static {
-        this.button.onclick = this.handleDownloadPressed;
-        this.minimize.onclick = this.handleMinimize;
-    }
-    private static handleMinimize() {
-        RecolorUI.root.classList.toggle("minimized")
-    }
-
-    private static addColor(color: string, id: number) {
-        const newcover = document.createElement('input');
-        newcover.type = 'color';
-        newcover.value = `#${color}`;
-        newcover.id = id.toString();
-        newcover.addEventListener("change", this.colorchanged.bind(newcover));
-        
-        this.div.insertAdjacentElement("beforeend", newcover);
-        this.colors.push(newcover);
-    }
-    public static SetColors(colors: Array<string>) {
-        for (let i = 0; i < colors.length; i++) {
-            if (this.colors.length <= i) {
-                this.addColor(colors[i], i);
-            } else {
-                this.colors[i].value = `#${colors[i]}`;
-            }
-        }
-        while (colors.length < this.colors.length) {
-            const moved = this.colors.pop();
-            if (moved instanceof HTMLInputElement) {
-                moved.remove();
-            }
-        }
-        this.button.ariaLabel = `파일 팔레트화가 완료되었습니다. 아래에 변경할 수 있는 색 목록이 있습니다. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
-        this.button.focus();
-    }
-    public static Show() {
-        this.root.classList.remove("hidden");
-        this.button.focus();
-        this.button.addEventListener('focusout', function() {
-            this.ariaLabel = `다운로드 버튼. 색 목록을 변경한 뒤 이 버튼을 눌러주세요.`;
-        });
-        this.isactivated = true;
-    }
-    private static async colorchanged(this: HTMLInputElement) {
-        const no = Number.parseInt(this.id);
-        const color = RecolorUI.colors[no].value;
-        const blob = await BlobTool.ChangePalette(no, color);
-        if (blob instanceof Blob) {
-            BlobTool.setUItoImage(BlobTool.createUrl(blob));
-        }
-    }
-    static handleDownloadPressed() {
-        const a = document.createElement('a');
-        a.download = RecolorUI.naming.value;
-        a.href = BlobTool.qurl;
-        a.click();
-    }
-}
-
 
 class CanvasLogic {
     public static canvas = document.querySelector('#pic') as HTMLCanvasElement;
@@ -256,9 +194,9 @@ function imageReady() {
 }
 function colornizeIfPaletted(data: ArrayBuffer) {
     const colors = rust.read_palette(new Uint8ClampedArray(data));
-    if (colors.length != 0) {
-        RecolorUI.SetColors(splitColors(colors));
-        RecolorUI.Show();
+    if (colors.length != 0 && recolorUI !== undefined) {
+        recolorUI.SetColors(splitColors(colors));
+        recolorUI.Show();
     }
 }
 
