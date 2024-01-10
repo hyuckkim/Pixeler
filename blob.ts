@@ -39,7 +39,7 @@ const loadPictureUI = loadPictureUIDiv instanceof HTMLDivElement
 
 export const position = () => { 
     return resizeUI?.GetPositions() 
-    ?? {x: 0, y: 0, w: 0, h: 0} };
+    ?? {x: 0, y: 0, dx: 0, dy: 0, w: 0, h: 0} };
 
 const resizeUIDiv = document.querySelector("#menu_resize");
 const resizeUI = resizeUIDiv instanceof HTMLDivElement
@@ -51,7 +51,6 @@ const quantizeUI = quantizeUIDiv instanceof HTMLDivElement
     ? new QuantizeUI(quantizeUIDiv, (blob, colors) => {
         recolorUI?.SetColors(colors);
         recolorUI?.Show();
-        resizeUI?.Hide();
         canvasUI?.RemoveStrokeRect(position);
 
         BlobTool.setUItoImage(BlobTool.createUrl(blob));

@@ -70,7 +70,7 @@ export class QuantizeUI extends PanelUI {
     ));
   }
   
-  private async makeCanvas(blob: string, pos: {x: number, y: number, w: number, h: number}): Promise<ImageData> {
+  private async makeCanvas(blob: string, pos: {x: number, y: number, dx: number, dy: number, w: number, h: number}): Promise<ImageData> {
     const img = document.createElement('img');
     img.src = blob;
     await new Promise((resolve) => (img.onload = resolve));
@@ -80,9 +80,9 @@ export class QuantizeUI extends PanelUI {
     canvas.height = img.height;
 
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-    ctx.drawImage(img, -pos.x, -pos.y);
+    ctx.drawImage(img, pos.x, pos.y, pos.w, pos.h, 0, 0, pos.dx, pos.dy);
     
-    return ctx.getImageData(0, 0, pos.w, pos.h);
+    return ctx.getImageData(0, 0, pos.dx, pos.dy);
   }
   private handleRangeChanged() {
     this.do.value = `${this.range.value}색 팔레트 만들기!`;

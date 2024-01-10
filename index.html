@@ -25,15 +25,21 @@
                     type="button" value="자르기"
                     class="_do w-full text-center disabled:bg-gray-300">
                     
-                <input class="_width w-10 text-sm italic rounded-md" value="1920">
+                <input type="number" class="_width w-12 text-sm italic rounded-md" value="1920">
                 <span> x </span>
-                <input class="_height w-10 text-sm italic rounded-md" value="1080">
+                <input type="number" class="_height w-12 text-sm italic rounded-md" value="1080">
             </div>
             <div class="_main flex justify-between group-[.minimized]:hidden bg-gray-300 rounded-md">
                 <span class="text-center w-full">오프셋: </span>
-                <input type="text" class="_x w-10 italic rounded-md" value="0">
+                <input type="number" class="_x w-12 italic rounded-md" value="0">
                 <div class="span">,</div>
-                <input type="text" class="_y w-10 italic rounded-md" value="0">
+                <input type="number" class="_y w-12 italic rounded-md" value="0">
+            </div>
+            <div class="_size flex justify-between group-[.minimized]:hidden bg-gray-300 rounded-md">
+                <span class="text-center w-full">반영될 크기: </span>
+                <input type="number" class="_width w-12 text-sm italic rounded-md" value="1920">
+                <span> x </span>
+                <input type="number" class="_height w-12 text-sm italic rounded-md" value="1080">
             </div>
         </div>
         <div id="menu_quantize" class="hidden group bg-gray-200 border-2 border-gray-700 rounded-md mb-0.5">
