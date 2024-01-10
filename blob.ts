@@ -1,5 +1,20 @@
+import { BlobTool } from "./BlobTool.js";
+import { QuantizeUI } from "./QuantizeUI.js";
+import { PanelUI } from "./panelUI.js";
 import * as rust from "./pkg/palette_png.js";
 rust.default();
+
+const quantizeUIDiv = document.querySelector("#menu_quantize");
+let quantizeUI = quantizeUIDiv instanceof HTMLDivElement
+    ? new QuantizeUI(quantizeUIDiv, (blob, colors) => {
+        RecolorUI.SetColors(colors);
+        if (!RecolorUI.isactivated) {
+            RecolorUI.Show();
+        }
+        BlobTool.setUItoImage(BlobTool.createUrl(blob));
+        BlobTool.UpdateImage();
+    })
+    : undefined;
 
 class LoadPictureUI {
     private static root = document.querySelector('#menu_loadpicture') as HTMLDivElement;
@@ -17,7 +32,7 @@ class LoadPictureUI {
             const file = self.input.files[0];
             const array = await self.loadBuffer(file);
             const blob = BlobTool.MakeBufferToBlob(array);
-            BlobTool.url = createUrl(blob);
+            BlobTool.url = BlobTool.createUrl(blob);
     
             imageReady();
             colornizeIfPaletted(array);
@@ -56,7 +71,7 @@ class LoadPictureUI {
         const blob = await this.loadXHR(`https://picsum.photos/${width}/${height}`);
         if (!(blob instanceof Blob)) return;
 
-        BlobTool.url = createUrl(blob);
+        BlobTool.url = BlobTool.createUrl(blob);
         imageReady();
     }
     static hide() {
@@ -75,87 +90,6 @@ class LoadPictureUI {
             };
             xhr.send();
         });
-    }
-}
-
-(document.querySelector('#plusbutton') as HTMLInputElement).addEventListener('click', function() {
-    QuantizeUI.ModifyRange(1);
-});
-(document.querySelector('#minusbutton') as HTMLInputElement).addEventListener('click', function() {
-    QuantizeUI.ModifyRange(-1);
-});
-
-type rgbColor = {r: number, g: number, b:number};
-class QuantizeUI {
-    private static worker = new Worker('wasmworker.js', {type: 'module'});
-    private static root = document.querySelector('#menu_quantize') as HTMLDivElement;
-    private static submit = document.querySelector('#menu_quantize > ._top > ._do') as HTMLInputElement;
-    private static range = document.querySelector('#menuslider') as HTMLInputElement;
-    private static dithering = document.querySelector('#ditheringslider') as HTMLInputElement;
-    private static gamma = document.querySelector('#gammaslider') as HTMLInputElement;
-    private static minimize = document.querySelector('#menu_quantize > ._top > ._minimize') as HTMLButtonElement;
-
-    public static isactivated = false;
-    
-    static {
-        this.range.onchange = this.handleRangeChanged;
-        this.submit.onclick = this.handleSubmitPressed;
-        this.worker.onmessage = this.handleWorkerFinished;
-        this.minimize.onclick = this.handleMinimize;
-    }
-
-    private static handleRangeChanged() {
-        const self = QuantizeUI;
-        self.submit.value = `${self.range.value}색 팔레트 만들기!`;
-    }
-    private static async handleSubmitPressed() {
-        const self = QuantizeUI;
-        self.startNewWork(
-            BlobTool.url,
-            self.range.value,
-            Number.parseInt(self.dithering.value) / 100,
-            Number.parseInt(self.gamma.value) / 100
-        );
-        
-        self.submit.disabled = true;
-    }
-    static async startNewWork(url: string, colors: string, dithering: number, gamma: number) {
-        const data: ImageData = await makeCanvas(url);
-        this.worker.postMessage([
-            data, 
-            colors,
-            dithering,
-            gamma]);
-    }
-    private static handleWorkerFinished(e: MessageEvent<any>) {
-        QuantizeUI.submit.disabled = false;
-        const worked: Uint8ClampedArray = e.data;
-        console.log(worked);
-
-        const pixelized = BlobTool.MakeBufferToBlob(worked.buffer);
-        const pixelcolors = splitColors(rust.read_palette(new Uint8ClampedArray(worked)));
-    
-        RecolorUI.SetColors(pixelcolors);
-        if (!RecolorUI.isactivated) {
-            RecolorUI.Show();
-        }
-        setUItoImage(createUrl(pixelized));
-        BlobTool.UpdateImage();
-    }
-    private static handleMinimize() {
-        QuantizeUI.root.classList.toggle("minimized")
-    }
-    public static Show() {
-        QuantizeUI.root.classList.remove("hidden");
-        QuantizeUI.isactivated = true;
-    }
-    public static ModifyRange(i: number) {
-        let res = i + Number.parseInt(this.range.value);
-        if (res > Number.parseInt(this.range.max)) res = Number.parseInt(this.range.max);
-        if (res < Number.parseInt(this.range.min)) res = Number.parseInt(this.range.min);
-
-        this.range.value = res.toString();
-        this.handleRangeChanged();
     }
 }
 
@@ -214,10 +148,10 @@ class RecolorUI {
     }
     private static async colorchanged(this: HTMLInputElement) {
         const no = Number.parseInt(this.id);
-        const color = getRGB(RecolorUI.colors[no].value);
+        const color = RecolorUI.colors[no].value;
         const blob = await BlobTool.ChangePalette(no, color);
         if (blob instanceof Blob) {
-            setUItoImage(createUrl(blob));
+            BlobTool.setUItoImage(BlobTool.createUrl(blob));
         }
     }
     static handleDownloadPressed() {
@@ -228,48 +162,6 @@ class RecolorUI {
     }
 }
 
-class BlobTool {
-    public static data: Blob | undefined = undefined;
-    private static image: HTMLImageElement | undefined = undefined;
-    public static url = "";
-    public static qurl = "";
-
-    public static async ChangePalette(id: number, color: rgbColor): Promise<Blob | undefined> {
-        if (!(BlobTool.data instanceof Blob)) return undefined;
-        const buffer = await BlobTool.data.arrayBuffer();
-        const data = new Uint8ClampedArray(buffer);
-        const newdata = rust.change_palette(data, id, color.r, color.g, color.b);
-
-        BlobTool.data = BlobTool.MakeBufferToBlob(newdata);
-        return BlobTool.data;
-    }
-    public static MakeBufferToBlob(data: ArrayBuffer): Blob {
-        const blob = new Blob([data], {type:'image/*'});
-        BlobTool.data = blob;
-        return blob;
-    }
-    public static GetImage(): HTMLImageElement | undefined {
-        if (this.image instanceof HTMLImageElement) return this.image;
-        else this.UpdateImage();
-
-        return this.image;
-    }
-    public static UpdateImage() {
-        if (this.data instanceof Blob) {
-            this.qurl = createUrl(this.data);
-        }
-        if (this.qurl != "") {
-            this.image = new Image();
-            this.image.src = this.qurl;
-            return this.image;
-        }
-        if (this.url != "") {
-            this.image = new Image();
-            this.image.src = this.url;
-            return this.image;
-        }
-    }
-}
 
 class CanvasLogic {
     public static canvas = document.querySelector('#pic') as HTMLCanvasElement;
@@ -356,20 +248,12 @@ class CanvasLogic {
     }
 }
 function imageReady() {
-    setUItoImage(BlobTool.url);
+    BlobTool.setUItoImage(BlobTool.url);
 
     LoadPictureUI.hide();
-    QuantizeUI.Show();
+
+    quantizeUI?.Show();
     CanvasLogic.StartDraw();
-}
-function createUrl(blob: Blob): string {
-    const urlCreator = window.URL || window.webkitURL;
-    const imageUrl = urlCreator.createObjectURL(blob);
-    return imageUrl;
-}
-function setUItoImage(imageUrl: string) {
-    BlobTool.qurl = imageUrl;
-    BlobTool.UpdateImage();
 }
 function colornizeIfPaletted(data: ArrayBuffer) {
     const colors = rust.read_palette(new Uint8ClampedArray(data));
@@ -379,7 +263,7 @@ function colornizeIfPaletted(data: ArrayBuffer) {
     }
 }
 
-function splitColors(data: Uint8ClampedArray): Array<string> {
+export function splitColors(data: Uint8ClampedArray): Array<string> {
     return Array.from({ length: data.length / 3 }, (_, i) => {
         const r = data[i * 3], g = data[i * 3 + 1], b = data[i * 3 + 2];
         return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
@@ -396,11 +280,4 @@ async function makeCanvas(blob: string): Promise<ImageData> {
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
     ctx.drawImage(img, 0, 0);
     return ctx.getImageData(0, 0, img.width, img.height);
-}
-function getRGB(color: string): rgbColor {
-    return {
-        r: Number.parseInt(`0x${color[1]}${color[2]}`),
-        g: Number.parseInt(`0x${color[3]}${color[4]}`),
-        b: Number.parseInt(`0x${color[5]}${color[6]}`)
-    };
 }

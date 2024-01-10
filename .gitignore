@@ -1,4 +1,4 @@
-blob.js
-wasmworker.js
+*.js
+!*.config.js
 
 node_modules/
