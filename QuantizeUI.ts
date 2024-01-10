@@ -13,7 +13,7 @@ export class QuantizeUI extends PanelUI {
   private worker: Worker;
   private onQuantized: (blob: Blob, colors: Uint8ClampedArray) => void;
 
-  constructor(root: HTMLElement, onQuantized: (blob: Blob, colors: Uint8ClampedArray) => void) {
+  constructor(root: HTMLDivElement, onQuantized: (blob: Blob, colors: Uint8ClampedArray) => void) {
     super(root);
 
     const menuSlider = this.root.querySelector("#menuslider");
