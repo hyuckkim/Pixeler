@@ -9,3 +9,15 @@
     margin: 0;
   }
 }
+
+@layer components {
+  ._menu {
+    @apply bg-gray-200 border-2 border-gray-700 rounded-md mb-0.5;
+  }
+  ._top {
+    @apply flex border-b-2 border-gray-700 group-[.minimized]:border-b-0;
+  }
+  ._body {
+    @apply flex justify-between group-[.minimized]:hidden;
+  }
+}

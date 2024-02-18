@@ -9,6 +9,7 @@
     <link href="tailwind.css" rel="stylesheet" />
 </head>
 <body>
+    <!-- CanvasUI -->
     <div id="menu_canvas" class="hidden relative w-full h-full">
         <canvas class="_pic"></canvas>
         <div class="absolute flex justify-evenly w-20 h-8 rounded-full border-black border-2 bottom-4 right-4">
@@ -21,13 +22,17 @@
             <div class="absolute bg-white rounded-full opacity-40 w-full h-full"></div>
         </div>
     </div>
+
+    <!-- LoadPictureUI -->
     <div id="menu_loadpicture" class="w-full h-full">
         <input class="h-[90%] w-full bg-gray-300" id="file" type="file" name="fileupload" accept="image/*" aria-label="스페이스 바를 눌러 꾸미기 위해 사용할 사진을 선택할 수 있습니다." autofocus/>
         <input class="h-[10%] w-full bg-gray-100 enabled:hover:bg-gray-400 disabled:bg-gray-500" id="rorem" type="button" value="...또는 적당한 이미지 사용하기" />
     </div>
     <div class="absolute top-0 min-w-[404px]">
-        <div id="menu_resize" class="hidden group bg-gray-200 border-2 border-gray-700 rounded-md mb-0.5">
-            <div class="_top flex border-b-2 border-gray-700 group-[.minimized]:border-b-0">
+
+        <!-- ResizeUI -->
+        <div id="menu_resize" class="_menu hidden group">
+            <div class="_top">
                 <button class="_minimize rounded-full bg-gray-400 w-5 h-5 m-0.5">
                     <svg xmlns="http://www.w3.org/2000/svg" class="group-[.minimized]:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up"><path d="m18 15-6-6-6 6"/></svg>
                     <svg xmlns="http://www.w3.org/2000/svg" class="hidden group-[.minimized]:block" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
@@ -40,21 +45,23 @@
                 <span> x </span>
                 <input type="number" class="_height w-12 text-sm italic rounded-md" value="1080">
             </div>
-            <div class="_main flex justify-between group-[.minimized]:hidden bg-gray-300 rounded-md">
+            <div class="_main _body bg-gray-300 rounded-md">
                 <span class="text-center w-full">오프셋: </span>
                 <input type="number" class="_x w-12 italic rounded-md" value="0">
                 <div class="span">,</div>
                 <input type="number" class="_y w-12 italic rounded-md" value="0">
             </div>
-            <div class="_size flex justify-between group-[.minimized]:hidden bg-gray-300 rounded-md">
+            <div class="_size _body bg-gray-300 rounded-md">
                 <span class="text-center w-full">반영될 크기: </span>
                 <input type="number" class="_width w-12 text-sm italic rounded-md" value="1920">
                 <span> x </span>
                 <input type="number" class="_height w-12 text-sm italic rounded-md" value="1080">
             </div>
         </div>
-        <div id="menu_quantize" class="hidden group bg-gray-200 border-2 border-gray-700 rounded-md mb-0.5">
-            <div class="_top flex w-full rounded-md border-b-2 group-[.minimized]:border-b-0 bg-gray-200 border-gray-700">
+
+        <!-- QuantizeUI -->
+        <div id="menu_quantize" class="_menu hidden group">
+            <div class="_top">
                 <button class="_minimize rounded-full bg-gray-400 w-5 h-5 m-0.5">
                     <svg xmlns="http://www.w3.org/2000/svg" class="group-[.minimized]:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up"><path d="m18 15-6-6-6 6"/></svg>
                     <svg xmlns="http://www.w3.org/2000/svg" class="hidden group-[.minimized]:block" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
@@ -65,22 +72,24 @@
                     type="button"
                     value="4색 팔레트 만들기!">
             </div>
-            <div class="flex justify-between group-[.minimized]:hidden">
+            <div class="_body">
                 <input class="w-8 h-8 p-0 bg-gray-300 border-0 border-black hover:bg-gray-400" id="minusbutton" type="button" value="-" tabindex="-1">
                 <input class="w-full" id="menuslider" aria-label="이미지를 변환할 때 사용할 색 개수" type="range" min="2" value="4" max="256">
                 <input class="w-8 h-8 o-0 bg-gray-300 border-0 border-black hover:bg-gray-400" id="plusbutton" type="button" value="+" tabindex="-1">
             </div>
-            <div class="flex justify-between group-[.minimized]:hidden">
+            <div class="_body">
                 <div class="w-16" id="ditheringtext">디더링 : </div>
                 <input class="w-80" aria-label="디더링" id="ditheringslider" type="range" min="0" value="100" max="100"> <br/>
             </div>
-            <div class="flex justify-between group-[.minimized]:hidden">
+            <div class="_body">
                 <div class="w-16" id="gammatext">감마 : </div>
                 <input class="w-80" aria-label="감마" id="gammaslider" type="range" min="0" value="0" max="99">
             </div>
         </div>
-        <div id="menu_palette" class="hidden group bg-gray-200 border-2 border-gray-700 rounded-md">
-            <div class="_top flex border-b-2 border-gray-700 group-[.minimized]:border-b-0">
+
+        <!-- RecolorUI -->
+        <div id="menu_palette" class="_menu hidden group">
+            <div class="_top">
                 <button class="_minimize rounded-full bg-gray-400 w-5 h-5 m-0.5">
                     <svg xmlns="http://www.w3.org/2000/svg" class="group-[.minimized]:hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up"><path d="m18 15-6-6-6 6"/></svg>
                     <svg xmlns="http://www.w3.org/2000/svg" class="hidden group-[.minimized]:block" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
