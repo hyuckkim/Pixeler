@@ -1,8 +1,8 @@
 import { UI } from "./panelUI.js";
 
-import { BlobTool } from "./BlobTool.js";
+import { BlobTool } from "../BlobTool.js";
 
-import * as rust from "./pkg/palette_png.js";
+import * as rust from "../pkg/palette_png.js";
 rust.default();
 
 export class LoadPictureUI extends UI {

@@ -1,6 +1,6 @@
 import { UI } from "./panelUI.js";
 
-import { BlobTool } from "./BlobTool.js";
+import { BlobTool } from "../BlobTool.js";
 
 export class CanvasUI extends UI {
   private canvas: HTMLCanvasElement;

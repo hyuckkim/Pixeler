@@ -1,6 +1,6 @@
 import { PanelUI } from "./panelUI.js";
 
-import { BlobTool } from "./BlobTool.js";
+import { BlobTool } from "../BlobTool.js";
 
 export class RecolorUI extends PanelUI {
   private palette: HTMLDivElement;

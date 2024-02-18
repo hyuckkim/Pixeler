@@ -1,9 +1,9 @@
 import { PanelUI } from "./panelUI.js";
 
-import { BlobTool } from "./BlobTool.js";
+import { BlobTool } from "../BlobTool.js";
 
-import * as rust from "./pkg/palette_png.js";
-import { position } from "./blob.js";
+import * as rust from "../pkg/palette_png.js";
+import { position } from "../blob.js";
 rust.default();
 
 export class QuantizeUI extends PanelUI {

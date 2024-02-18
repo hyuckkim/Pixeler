@@ -1,9 +1,9 @@
 import { BlobTool } from "./BlobTool.js";
-import { CanvasUI } from "./CanvasUI.js";
-import { LoadPictureUI } from "./LoadPictureUI.js";
-import { QuantizeUI } from "./QuantizeUI.js";
-import { RecolorUI } from "./RecolorUI.js";
-import { ResizeUI } from "./ResizeUI.js";
+import { CanvasUI } from "./ui/CanvasUI.js";
+import { LoadPictureUI } from "./ui/LoadPictureUI.js";
+import { QuantizeUI } from "./ui/QuantizeUI.js";
+import { RecolorUI } from "./ui/RecolorUI.js";
+import { ResizeUI } from "./ui/ResizeUI.js";
 import * as rust from "./pkg/palette_png.js";
 rust.default();
 
