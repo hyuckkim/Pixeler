@@ -21,3 +21,8 @@ wasm-pack build --target web --out-dir ../pkg
 cd ..
 tsc
 ```
+
+## tailwind 빌드
+```bash
+npx tailwindcss -i input.css -o tailwind.css --minify
+```

@@ -15,7 +15,7 @@ export class BlobTool {
       const data = new Uint8ClampedArray(buffer);
       const newdata = rust.change_palette(data, id, rgb.r, rgb.g, rgb.b);
 
-      BlobTool.data = BlobTool.MakeBufferToBlob(newdata);
+      BlobTool.data = BlobTool.MakeBufferToBlob(newdata.buffer as ArrayBuffer);
       return BlobTool.data;
   }
   public static MakeBufferToBlob(data: ArrayBuffer): Blob {

@@ -63,7 +63,7 @@ export class QuantizeUI extends PanelUI {
     this.do.disabled = false;
 
     
-    const pixelized = BlobTool.MakeBufferToBlob(worked.buffer);
+    const pixelized = BlobTool.MakeBufferToBlob(worked.buffer as ArrayBuffer);
 
     this.onQuantized(pixelized, rust.read_palette(
       new Uint8ClampedArray(worked)
