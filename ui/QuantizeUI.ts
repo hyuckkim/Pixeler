@@ -10,6 +10,7 @@ export class QuantizeUI extends PanelUI {
   private range: HTMLInputElement;
   private dithering: HTMLInputElement;
   private gamma: HTMLInputElement;
+  private palette: HTMLDivElement;
 
   private worker: Worker;
   private onQuantized: (blob: Blob, colors: Uint8ClampedArray) => void;
@@ -20,21 +21,24 @@ export class QuantizeUI extends PanelUI {
     const menuSlider = this.root.querySelector("#menuslider");
     const ditheringSlider = this.root.querySelector("#ditheringslider");
     const gammaSlider = this.root.querySelector("#gammaslider");
+    const palette = this.root.querySelector('#palette');
 
     if (
       !(menuSlider instanceof HTMLInputElement) ||
       !(ditheringSlider instanceof HTMLInputElement) ||
-      !(gammaSlider instanceof HTMLInputElement)
-    ) throw new Error("QuantizeUI must have three slider: #menuslider, #ditheringslider, gammaslider");
+      !(gammaSlider instanceof HTMLInputElement) ||
+      !(palette instanceof HTMLDivElement)
+    ) throw new Error("QuantizeUI must have three slider: #menuslider, #ditheringslider, gammaslider; and palette");
     
     this.range = menuSlider;
     this.range.onchange = () => { this.handleRangeChanged() }
-
     this.dithering = ditheringSlider;
     this.gamma = gammaSlider;
+    this.palette = palette
 
     const plusButton = this.root.querySelector("#plusbutton");
     const minusButton = this.root.querySelector("#minusbutton");
+    this.addPaletteColor(0, 0, 0);
 
     if (
       !(plusButton instanceof HTMLInputElement) ||
@@ -44,7 +48,7 @@ export class QuantizeUI extends PanelUI {
     plusButton.onclick = () => { this.handleModifyRange(1) }
     minusButton.onclick = () => { this.handleModifyRange(-1) }
 
-    this.worker = new Worker('wasmworker.js', {type: 'module'});
+    this.worker = new Worker(`wasmworker.js?version=${Date.now()}`, {type: 'module'});
     this.onQuantized = onQuantized;
   }
 
@@ -54,7 +58,8 @@ export class QuantizeUI extends PanelUI {
       data,
       this.range.value,
       Number.parseInt(this.dithering.value) / 100,
-      Number.parseInt(this.gamma.value) / 100
+      Number.parseInt(this.gamma.value) / 100,
+      this.getPaletteArray() // fixed palette
     ]);
 
     this.do.disabled = true;
@@ -95,4 +100,68 @@ export class QuantizeUI extends PanelUI {
     this.range.value = res.toString();
     this.handleRangeChanged();
   }
+  private renderPalette(colors?: Uint8ClampedArray) {
+  this.palette.innerHTML = "";
+
+  // 초기 color가 없으면 하나 만들어둠
+  if (!colors || colors.length === 0) {
+    this.addPaletteColor(0xff, 0xff, 0xff); // 흰색 기본
+    return;
+  }
+
+  const count = colors.length / 4;
+  for (let i = 0; i < count; i++) {
+    const r = colors[i*4 + 0];
+    const g = colors[i*4 + 1];
+    const b = colors[i*4 + 2];
+    const a = colors[i*4 + 3];
+    this.addPaletteColor(r, g, b, a);
+  }
+}
+  private addPaletteColor(r: number, g: number, b: number, a = 255) {
+    const input = document.createElement("input");
+    input.type = "color";
+    input.value = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    
+    // 마지막 input인지 체크
+    input.oninput = () => {
+      this.handlePaletteChanged(input);
+
+      // 마지막 input이면 새로운 color 추가
+      const inputs = Array.from(this.palette.querySelectorAll<HTMLInputElement>('input[type=color]'));
+      if (inputs[inputs.length - 1] === input) {
+        this.addPaletteColor(255, 255, 255); // 기본 흰색
+      }
+    };
+
+    this.palette.appendChild(input);
+  }
+  private handlePaletteChanged(input: HTMLInputElement) {
+    const index = Array.from(this.palette.children).indexOf(input);
+    const hex = input.value;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+  }
+  private getPaletteArray(): Uint8ClampedArray {
+    const inputs = Array.from(this.palette.querySelectorAll<HTMLInputElement>('input[type=color]'));
+
+    // 마지막 input은 제외
+    const count = Math.max(0, inputs.length - 1);
+    const arr = new Uint8ClampedArray(count * 4);
+
+    for (let i = 0; i < count; i++) {
+      const hex = inputs[i].value;
+      arr[i*4 + 0] = parseInt(hex.slice(1, 3), 16);
+      arr[i*4 + 1] = parseInt(hex.slice(3, 5), 16);
+      arr[i*4 + 2] = parseInt(hex.slice(5, 7), 16);
+      arr[i*4 + 3] = 255; // alpha 고정
+    }
+
+    return arr;
+  }
+}
+  
+function toHex(v: number): string {
+  return v.toString(16).padStart(2, "0");
 }

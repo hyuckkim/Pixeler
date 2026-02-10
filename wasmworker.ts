@@ -6,7 +6,9 @@ onmessage = function(e) {
     const pixelno : number = e.data[1];
     const dithering : number = e.data[2];
     const gamma : number = e.data[3];
+    const fixed : Uint8ClampedArray = e.data[4];
+    console.log(fixed);
     
-    var quantized = rust.quantize(img.data, img.width, img.height, pixelno, dithering, gamma);
+    var quantized = rust.quantize(img.data, img.width, img.height, pixelno, dithering, gamma, fixed);
     this.postMessage(quantized);
 }
